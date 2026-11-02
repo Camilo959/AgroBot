@@ -7,13 +7,17 @@ todos los cultivos secos. Stack: Python, pygame y customtkinter.
 
 ```text
 agrobot/
-├── main.py, requirements.txt, README.md
+├── main.py, requirements.txt, README.md, pytest.ini
 ├── core/      (world.py, state.py, problem.py, node.py)
-├── algorithms/ (bfs.py, ucs.py, dfs.py, greedy.py, astar.py, ...)
-├── ui/        (app.py, report_panel.py, animator.py, assets/)
+├── algorithms/ (base.py, bfs.py, ucs.py, dfs.py, ...)
+├── ui/        (app.py, theme.py, textos.py, componentes.py, board_view.py,
+│              runner.py, animator.py, report_panel.py, sesion.py,
+│              assets_loader.py, screens/, assets/)
+├── scripts/   (comparar_no_informada.py)
 ├── worlds/    (Prueba1.txt, ...)
-├── tests/     (test_problem.py, test_world.py, ...)
-└── docs/informe/
+├── tests/     (test_world.py, test_problem.py, test_algorithms.py,
+│              test_ui_logica.py)
+└── docs/      (informe/, CAMBIOS.md, CONTEXTO_BUSQUEDA_NO_INFORMADA.md)
 ```
 
 ## Entorno virtual
@@ -46,6 +50,43 @@ pytest -v
 > comandos se invocan como `./venv/Scripts/python.exe -m pytest -v`.
 > Detecta tu SO con `python -c "import platform; print(platform.system())"`.
 
+## Cómo ejecutar la aplicación
+
+```bash
+python main.py
+```
+
+La interfaz tiene tres pantallas: **Inicio**, **Juego** (cargar mundo,
+elegir algoritmo y ejecutar) y **Resumen** (reporte y animación). En la
+pantalla de juego, "Informada" muestra Avara y A* deshabilitados con la
+leyenda "próximamente".
+
+### Arquitectura de procesos
+
+Customtkinter y pygame no comparten proceso:
+
+1. La ventana principal (customtkinter) no importa pygame.
+2. La búsqueda corre en un proceso hijo con `multiprocessing` (contexto
+   `spawn`), lanzada desde `ui/runner.py`. Se puede cancelar con
+   `terminate()` y la interfaz consulta el resultado con `after(...)`.
+3. La animación (pygame) corre en otro proceso `spawn`
+   (`ui/animator.py`). Cerrar su ventana no cierra la principal.
+4. Al cerrar la ventana principal se terminan los procesos hijos vivos.
+
+### Controles de la animación
+
+| Tecla | Acción |
+|---|---|
+| Espacio | Pausar / reanudar |
+| ← / → | Paso anterior / siguiente |
+| ↑ / ↓ | Subir / bajar velocidad |
+| R | Reiniciar |
+| Esc | Cerrar la animación |
+
+El HUD muestra paso, fertilizante, combustible, costo acumulado y la
+leyenda de controles. La velocidad y los colores se configuran en
+`ui/theme.py`.
+
 ## Supuestos de diseño
 
 1. **Costo al abordar la avioneta.** El movimiento que llega a la casilla de
@@ -69,7 +110,7 @@ pytest -v
    + combustible + pendientes), así el agente puede volver a una casilla si
    algo cambió (abordó la avioneta, recargó fertilizante o trató un cultivo).
 
-## Alcance actual (core + búsqueda no informada, sin UI)
+## Alcance actual (core + búsqueda no informada + UI)
 
 - `core/world.py`: clase `World` con `desde_archivo`, `es_libre` y `__str__`.
 - `core/state.py`: `Estado` como `@dataclass(frozen=True)` (hasheable).
@@ -79,9 +120,11 @@ pytest -v
   `__lt__` (desempate por `g` y orden de creación) para usarlo en `heapq`.
 - `algorithms/base.py`: `Resultado`, claves de ciclo, detección en rama.
 - `algorithms/bfs.py`, `ucs.py`, `dfs.py`: las tres búsquedas.
+- `ui/`: tema centralizado, pantallas, tablero, runner de procesos,
+  reporte puro y animación pygame. Ver `ui/README_UI.md`.
 
-Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`,
-`ui/` y `main.py`.
+Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`
+(Avara y A* aparecen deshabilitados en la UI).
 
 ## Algoritmos de búsqueda no informada
 

@@ -190,3 +190,89 @@ expandidos, UCS 9561, DFS 81. Ningún modo chocó con límites.
 
 Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`, `greedy.py`,
 `astar.py`, `heuristics.py`.
+
+---
+
+## 2026-11-02 — Interfaz gráfica (inicio, juego, resumen) y animación
+
+Aplicación completa de escritorio con customtkinter (ventana principal) y
+pygame (animación en proceso aparte). No se modificó `core/` ni
+`algorithms/`.
+
+Archivos creados:
+
+- `ui/theme.py`: colores, fuentes, tamaños, bordes, `TAM_CELDA`,
+  `ARCHIVOS_ASSETS`, `LIMITE_NODOS_DEFECTO`, velocidad de animación,
+  tamaños de ventana y geometría pura (`celda_a_pixeles`,
+  `ajustar_tam_celda`).
+- `ui/textos.py`: todos los textos visibles y `t(clave, **kwargs)`.
+- `ui/assets_loader.py`: carga RGBA, escalado `NEAREST` para 16/32 px,
+  preprocesado del robot (floodfill desde 8 puntos, `thresh=38`, recorte,
+  lienzo cuadrado, 128×128 LANCZOS) y caché en
+  `ui/assets/generados/agrobot_128.png`; reemplazos si falta un asset.
+- `ui/componentes.py`: botón primario/secundario/peligro, tarjeta,
+  título, subtítulo, etiquetas, campo, selector segmentado, opción,
+  separador, contenedor, imagen y fila clave-valor. Las pantallas no usan
+  colores ni fuentes directas.
+- `ui/sesion.py`: `SesionJuego` con ruta, mundo, tipo, algoritmo, límite,
+  resultado y estado de búsqueda.
+- `ui/board_view.py`: `TableroCanvas` con capas casilla/muro/cultivo/
+  depósito/avioneta con sombra/robot, redibujado al cambiar tamaño y
+  celdas múltiplo de 16.
+- `ui/report_panel.py`: `construir_reporte` (costo solo para Costo
+  uniforme/A*), `costo_paso`, `costos_acumulados` y `costo_total`.
+- `ui/runner.py`: búsqueda en proceso `spawn`; `iniciar`, `consultar`,
+  `cancelar`, `en_ejecucion` y `ultimo_error`.
+- `ui/animator.py`: animación pygame en proceso `spawn` con HUD
+  (paso, fertilizante, combustible, costo), sombra de avioneta, tratado
+  de cultivos, reproducción automática y controles
+  Espacio/←/→/↑/↓/R/Esc.
+- `ui/app.py`: ventana principal, contenedor apilado y `ir_a`.
+- `ui/screens/__init__.py`: registro `PANTALLAS`.
+- `ui/screens/inicio.py`, `juego.py`, `resumen.py`: las tres pantallas.
+- `ui/README_UI.md`: contrato de pantallas y guía para cambiar pantalla,
+  asset, color, fuente, texto o algoritmo.
+- `scripts/` ya existía; sin cambios en esta etapa.
+- `tests/test_ui_logica.py` (nuevo, 9 pruebas): reporte por algoritmo,
+  sin solución, límite alcanzado, costo por paso y acumulado, geometría,
+  preprocesado del robot (128×128 RGBA, esquinas transparentes, centro
+  opaco), `NEAREST` y registro de pantallas.
+
+Archivos modificados:
+
+- `main.py`: abre `AgroBotApp`; `if __name__ == "__main__"` y
+  `multiprocessing.freeze_support()`.
+- `requirements.txt`: se agregó `pillow`.
+- `.gitignore`: se ignora `ui/assets/generados/` (caché del robot).
+- `README.md`: cómo ejecutar (`python main.py`), arquitectura de procesos,
+  controles de la animación y alcance actualizado.
+- `docs/CAMBIOS.md`: esta entrada.
+
+Resultado: `pytest -v` → **58 passed** (74.57 s).
+
+Pruebas de humo realizadas:
+
+- `python main.py` durante 7 s: el proceso quedó vivo, sin salida de error.
+- Creación de la app y navegación inicio → juego → resumen → inicio sin
+  excepciones.
+- Flujo completo con Prueba1 y Amplitud: búsqueda en proceso hijo
+  (5251 expandidos, 30 pasos), navegación automática a resumen y
+  animación lanzada en otro proceso (viva tras 3 s).
+- Vista previa del robot preprocesado revisada visualmente: fondo
+  transparente y figura completa.
+
+Supuestos y notas:
+
+- Los archivos reales usan guion bajo (`0_casilla.png`, …) y el robot
+  actual es RGBA de 1276×1268 (no 2048×2048 opaco); el preprocesado se
+  aplicó igual y se verificó. Se mantiene el mapeo en `ARCHIVOS_ASSETS`.
+- Al agotarse el combustible (`0`) no se dibuja avioneta: el robot sigue
+  a pie. Solo se muestra la avioneta en su casilla con `-1` y bajo el
+  robot con `1..30`.
+- La geometría del tablero se ajusta al espacio y se redondea a múltiplos
+  de 16; si el espacio es muy pequeño, baja a 16 px.
+- No se pudieron probar de forma interactiva las teclas de la animación
+  ni apreciar el resultado visual final en pantalla desde este entorno;
+  sí se verificó que la ventana de pygame se abre y permanece viva.
+- Sigue fuera de alcance: Avara, A* y heurísticas (visibles y
+  deshabilitados con "próximamente").
