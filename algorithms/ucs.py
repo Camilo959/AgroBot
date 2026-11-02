@@ -27,15 +27,16 @@ from core.problem import Problema
 
 def busqueda_costo_uniforme(
     problema: Problema,
-    modo_ciclos: str = "global",
+    modo_ciclos: str = "rama",
     limite_nodos: int | None = None,
 ) -> Resultado:
     """Busca con UCS: expande el nodo de menor `g` con `heapq`.
 
     Args:
         problema: problema a resolver.
-        modo_ciclos: "global" (cerrados con clave completa: preserva la
-            optimalidad) o "rama" (ancestros con clave relajada).
+        modo_ciclos: "rama" (por defecto; ancestros con clave relajada)
+            o "global" (cerrados con clave completa: preserva la
+            optimalidad).
         limite_nodos: máximo de nodos a expandir. Al alcanzarlo se
             devuelve `exito=False` con `limite_alcanzado=True`.
 

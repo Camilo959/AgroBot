@@ -87,17 +87,19 @@ Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`,
 
 | Algoritmo | Función | Estructura | Defecto `modo_ciclos` |
 |---|---|---|---|
-| Amplitud (BFS) | `busqueda_amplitud` | cola FIFO (`deque`) | `"global"` |
-| Costo uniforme (UCS) | `busqueda_costo_uniforme` | `heapq` por `g` | `"global"` |
+| Amplitud (BFS) | `busqueda_amplitud` | cola FIFO (`deque`) | `"rama"` |
+| Costo uniforme (UCS) | `busqueda_costo_uniforme` | `heapq` por `g` | `"rama"` |
 | Profundidad (DFS) | `busqueda_profundidad` | pila (iterativo) | `"rama"` |
 
 - **Test de meta al extraer** el nodo (nunca al generar); el meta cuenta
   como expandido.
-- **`modo_ciclos`**: `"global"` marca estados ya expandidos (cerrados);
-  `"rama"` revisa solo los ancestros del camino actual. BFS y DFS usan la
-  clave relajada (sin combustible exacto: evita la oscilación en la
-  avioneta); UCS usa la clave completa en `"global"` (preserva la
-  optimalidad) y la relajada en `"rama"`. Valor inválido → `ValueError`.
+- **`modo_ciclos`** (por defecto `"rama"` en los tres): `"rama"` revisa
+  solo los ancestros del camino actual y permite los regresos que autoriza
+  el enunciado; `"global"` marca estados ya expandidos (cerrados) y suele
+  expandir menos nodos. BFS y DFS usan la clave relajada (sin combustible
+  exacto: evita la oscilación en la avioneta) en ambos modos; UCS usa la
+  clave completa en `"global"` (preserva la optimalidad) y la relajada en
+  `"rama"`. Valor inválido → `ValueError`.
 - **`limite_nodos`**: máximo de nodos a expandir; al alcanzarlo devuelve
   `exito=False` con `limite_alcanzado=True`. Útil para probar `"rama"`
   sin colgar la terminal.

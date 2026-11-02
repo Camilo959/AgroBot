@@ -126,3 +126,67 @@ costo 58.0), como es esperado.
 
 Sin tocar (fuera de alcance): `greedy.py`, `astar.py`, `heuristics.py`,
 `ui/`, `main.py`.
+
+---
+
+## 2026-11-02 — `modo_ciclos="rama"` por defecto en los tres algoritmos
+
+Decisión: los ciclos se evitan por rama por defecto en BFS, UCS y DFS,
+porque el enunciado permite devolverse (subir a la avioneta, recargar,
+tratar un cultivo) y la clave relajada ya cubre esos regresos. `"global"`
+sigue disponible como opción.
+
+Archivos modificados:
+
+- `algorithms/bfs.py` (modificado): valor por defecto `modo_ciclos="rama"`;
+  docstring actualizado. No cambió la lógica ni el conteo de expandidos.
+- `algorithms/ucs.py` (modificado): valor por defecto `modo_ciclos="rama"`;
+  docstring actualizado. Se conserva la regla de claves (completa en
+  `"global"`, relajada en `"rama"`). Sin cambios de lógica ni de conteo.
+- `algorithms/dfs.py` (sin cambios): ya tenía `"rama"` por defecto.
+- `tests/test_algorithms.py` (modificado): `test_4` y `test_5` fijan
+  `modo_ciclos="global"` en BFS y UCS. Motivo: el mundo abierto con la
+  meta lejana hace que `"rama"` explote combinatoriamente en BFS (se
+  comprobó: `pytest` no terminó en 15 min); la propiedad que verifican
+  (optimalidad de UCS y BFS no óptimo en costo) no depende del modo. El
+  modo por defecto (`"rama"`) se sigue cubriendo en `test_3b` sobre
+  Prueba1 y en `test_1`, `test_2`, `test_3`, `test_6`–`test_11`.
+  No cambió ninguna aserción.
+- `scripts/comparar_no_informada.py` (modificado): las tres filas
+  principales usan los valores por defecto (rama); se conservan las filas
+  `"global"` de BFS y UCS como comparación. Se eliminó el límite de
+  2 000 000 porque `"rama"` ya es el modo por defecto y no lo necesita.
+- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md` (modificado):
+  - 4.4: tabla con `"rama"` por defecto en los tres; se conserva la regla
+    de claves (BFS/DFS relajada; UCS completa en `"global"` y relajada en
+    `"rama"`). Se reemplazó el párrafo de "por qué BFS y UCS usan global"
+    por la nota de la decisión.
+  - 5: firmas con `modo_ciclos="rama"`; "profundidad del árbol" marcada
+    como confirmada por el profesor.
+  - 6: nueva fila con el cambio del valor por defecto.
+  - 9: supuestos separados en "Confirmado por el profesor" (profundidad
+    del árbol = `profundidad_maxima`, llegar a la avioneta cuesta 1, sin
+    bajada voluntaria) y "Supuestos del equipo" (nodo meta expandido,
+    desempate UCS, `"rama"` por defecto, clave relajada, supuestos 3-6 del
+    core).
+- `README.md` (modificado): tabla de algoritmos con `"rama"` por defecto
+  y explicación de `modo_ciclos`, claves y `limite_nodos`.
+
+Resultado: `pytest -v` → **49 passed** (80.45 s).
+
+Tabla sobre `Prueba1.txt` (valores por defecto):
+
+```text
+alg    modo       exito  expandidos        generados        prof        prof_max           tiempo   costo
+BFS    rama       True   5251              6423             30          31                 0.11     30.0
+UCS    rama       True   9561              12335            38          40                 0.21     25.0
+DFS    rama       True   81                105              68          76                 0.00     58.0
+BFS    global     True   651               1424             30          31                 0.01     30.0
+UCS    global     True   3380              7377             38          40                 0.05     25.0
+```
+
+Coincide con las filas `"rama"` de la corrida anterior: BFS 5251
+expandidos, UCS 9561, DFS 81. Ningún modo chocó con límites.
+
+Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`, `greedy.py`,
+`astar.py`, `heuristics.py`.

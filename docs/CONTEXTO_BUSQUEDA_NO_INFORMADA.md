@@ -144,28 +144,28 @@ La clave relajada sigue permitiendo los regresos legítimos del enunciado, porqu
 
 | Algoritmo | Valor por defecto | Clave usada |
 |---|---|---|
-| BFS | `"global"` | relajada |
-| UCS | `"global"` | **completa** |
+| BFS | `"rama"` | relajada (también en `"global"`) |
+| UCS | `"rama"` | relajada en `"rama"`; **completa** en `"global"` |
 | DFS | `"rama"` | relajada |
 
 - **`"rama"`:** se revisan los ancestros del nodo (incluido el padre), tal como lo define el profesor.
 - **`"global"`:** conjunto de estados ya expandidos (cerrados). Se marca el estado **al extraerlo**.
 - En UCS con `"global"` hay que usar la clave **completa**. Con la relajada se podría cerrar un estado con menos combustible pero menor `g` antes de ver uno con más combustible y mayor `g`, y perder la optimalidad.
 - En UCS con `"rama"` sí se puede usar la relajada (argumento de dominancia de 4.3).
-- Para BFS y DFS la clave relajada es segura en modo global, porque el combustible solo afecta el costo y no lo alcanzable.
+- Para BFS y DFS la clave relajada es segura en ambos modos, porque el combustible solo afecta el costo y no lo alcanzable.
 - Un valor de `modo_ciclos` inválido lanza `ValueError`.
 
-**Por qué BFS y UCS usan `"global"` por defecto (PENDIENTE DE CONFIRMAR):** en clase los ciclos se evitan por rama. Mi estimación, sin haberla medido, es que BFS y UCS por rama pueden crecer de forma exponencial con la profundidad, y `Prueba1` probablemente necesita una solución de alrededor de 30 movimientos. Por eso el modo `"global"` es el práctico. El modo `"rama"` queda disponible para comparar y documentar en el informe.
+**Por qué `"rama"` es el valor por defecto en los tres:** la estimación inicial era que `"rama"` sería inviable en BFS y UCS por crecimiento exponencial. Sin embargo, medido sobre `Prueba1` terminó en menos de 0.25 s, y el enunciado permite devolverse (subir a la avioneta, recargar o tratar un cultivo), algo que la clave relajada ya cubre. Por eso `"rama"` es el valor por defecto. `"global"` queda como alternativa con menos nodos expandidos.
 
 ### 4.5 Límite de seguridad
 
-Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para probar el modo `"rama"` sin que la terminal se quede colgada.
+Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para acotar búsquedas costosas, por ejemplo en cuadrículas abiertas donde `"rama"` explora muchos caminos simples.
 
 ## 5. Interfaz de los algoritmos
 
 ```python
-busqueda_amplitud(problema, modo_ciclos="global", limite_nodos=None) -> Resultado
-busqueda_costo_uniforme(problema, modo_ciclos="global", limite_nodos=None) -> Resultado
+busqueda_amplitud(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
+busqueda_costo_uniforme(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
 busqueda_profundidad(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
 ```
 
@@ -184,7 +184,7 @@ busqueda_profundidad(problema, modo_ciclos="rama", limite_nodos=None) -> Resulta
 | `costo: float \| None` | Costo `g` de la solución. Se calcula siempre. `None` solo si no hay solución |
 | `limite_alcanzado: bool` | Si se cortó por `limite_nodos` |
 
-**Qué mostrar como "profundidad del árbol" en la UI es PENDIENTE DE CONFIRMAR.** Por ahora se guardan ambas (`profundidad` y `profundidad_maxima`).
+**Confirmado por el profesor:** "profundidad del árbol" = `profundidad_maxima`. Se guardan ambas (`profundidad` y `profundidad_maxima`) por si la UI necesita la otra.
 
 Helpers en `base.py`:
 - `clave_completa(estado)` y `clave_relajada(estado)`.
@@ -198,6 +198,7 @@ Helpers en `base.py`:
 | Nodo expandido | El que genera sucesores | El que se extrae y se verifica, **incluye el nodo meta** |
 | DFS evitando ciclos | `visitados` global | Revisión de ancestros (por rama) |
 | Clave de ciclo | `Estado` completo siempre | Relajada (sin combustible exacto) salvo UCS global |
+| `modo_ciclos` por defecto | BFS y UCS en `"global"`, DFS en `"rama"` | `"rama"` en BFS, UCS y DFS |
 | `Resultado` | Sin `exito`, `nodos_generados`, `profundidad_maxima` | Se agregan |
 
 ## 7. Pruebas esperadas (`tests/test_algorithms.py`)
@@ -223,13 +224,20 @@ Un script de consola (`scripts/comparar_no_informada.py`) debe correr BFS, UCS y
 
 `algoritmo | modo_ciclos | exito | nodos_expandidos | nodos_generados | profundidad | profundidad_maxima | tiempo | costo`
 
-Los modos `"rama"` de BFS y UCS se corren con un `limite_nodos` alto (por ejemplo 2 000 000), para dejar documentado si son viables.
+Las tres primeras filas usan los valores por defecto (`"rama"`). Se incluyen además las filas `"global"` de BFS y UCS como comparación, ya que expanden menos nodos.
 
 ## 9. Supuestos que hay que mencionar en el informe
 
-1. Test de meta al extraer. El nodo meta cuenta como expandido.
-2. Desempate en UCS por orden de creación.
-3. `modo_ciclos` por defecto: BFS y UCS en `"global"`, DFS en `"rama"`.
-4. Clave de ciclo relajada para evitar la oscilación en la avioneta.
-5. Qué se reporta como "profundidad del árbol".
-6. Los supuestos 1 a 6 del core (costo al llegar a la avioneta, sin bajada voluntaria, codificación de `combustible`, etc.), ya documentados en el README.
+**Confirmado por el profesor:**
+
+1. "Profundidad del árbol" = `profundidad_maxima`.
+2. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo se determina por el combustible previo).
+3. No hay bajada voluntaria de la avioneta.
+
+**Supuestos del equipo:**
+
+4. Test de meta al extraer; el nodo meta cuenta como expandido y no genera hijos.
+5. Desempate en UCS por orden de creación.
+6. `modo_ciclos` por defecto `"rama"` en BFS, UCS y DFS.
+7. Clave de ciclo relajada para evitar la oscilación en la avioneta.
+8. Los supuestos 3 a 6 del core (codificación de `combustible`, tratamiento automático y obligatorio, casillas transitables, orden de operadores), ya documentados en el README.

@@ -23,15 +23,15 @@ from core.problem import Problema
 
 def busqueda_amplitud(
     problema: Problema,
-    modo_ciclos: str = "global",
+    modo_ciclos: str = "rama",
     limite_nodos: int | None = None,
 ) -> Resultado:
     """Busca con BFS: expande por niveles con cola FIFO.
 
     Args:
         problema: problema a resolver.
-        modo_ciclos: "global" (cerrados con clave relajada) o "rama"
-            (ancestros con clave relajada).
+        modo_ciclos: "rama" (por defecto; ancestros con clave relajada)
+            o "global" (cerrados con clave relajada).
         limite_nodos: máximo de nodos a expandir. Al alcanzarlo se
             devuelve `exito=False` con `limite_alcanzado=True`.
 

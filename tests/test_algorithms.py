@@ -120,9 +120,15 @@ def mundo_avioneta(tmp_path: Path) -> Problema:
 
 
 def test_4_optimalidad_ucs(tmp_path):
+    """La optimalidad de UCS no depende del modo de ciclos.
+
+    Se fija "global" en BFS y UCS porque este mundo abierto con la meta
+    lejana hace que el modo "rama" explote en BFS (complejidad de caminos
+    simples); el modo por defecto se cubre en `test_3b` sobre Prueba1.
+    """
     p = mundo_avioneta(tmp_path)
-    bfs = busqueda_amplitud(p)
-    ucs = busqueda_costo_uniforme(p)
+    bfs = busqueda_amplitud(p, modo_ciclos="global")
+    ucs = busqueda_costo_uniforme(p, modo_ciclos="global")
     dfs = busqueda_profundidad(p)
     assert bfs.exito and ucs.exito and dfs.exito
     assert ucs.costo <= bfs.costo
@@ -130,11 +136,11 @@ def test_4_optimalidad_ucs(tmp_path):
 
 
 def test_5_bfs_mas_caro_que_ucs_por_avioneta(tmp_path):
+    """BFS minimiza pasos, no costo; UCS sí abarata con la avioneta."""
     p = mundo_avioneta(tmp_path)
-    bfs = busqueda_amplitud(p)
-    ucs = busqueda_costo_uniforme(p)
+    bfs = busqueda_amplitud(p, modo_ciclos="global")
+    ucs = busqueda_costo_uniforme(p, modo_ciclos="global")
     assert bfs.exito and ucs.exito
-    # BFS minimiza pasos (18) a costo 1; UCS usa la avioneta (15.5).
     assert bfs.costo == 18
     assert ucs.costo == 15.5
     assert bfs.costo > ucs.costo

@@ -6,7 +6,9 @@ Muestra la tabla de la sección 8 de
 algoritmo | modo_ciclos | exito | nodos_expandidos | nodos_generados |
 profundidad | profundidad_maxima | tiempo | costo
 
-Los modos "rama" de BFS y UCS se corren con `limite_nodos=2_000_000`.
+Las tres primeras filas usan los valores por defecto (`modo_ciclos="rama"`
+en los tres algoritmos). Las dos últimas muestran la alternativa `"global"`
+de BFS y UCS, que expande menos nodos.
 
 Uso (desde la raíz del proyecto):
     python scripts/comparar_no_informada.py
@@ -26,8 +28,6 @@ from algorithms.ucs import busqueda_costo_uniforme
 from core.problem import Problema
 from core.world import World
 
-LIMITE_RAMA = 2_000_000
-
 
 def fila(nombre: str, modo: str, r: Resultado) -> str:
     """Formatea una fila de la tabla de comparación."""
@@ -46,13 +46,13 @@ def main() -> None:
     problema = Problema(World.desde_archivo(str(ruta)))
 
     experimentos = [
+        # Valores por defecto: modo_ciclos="rama" en los tres.
+        ("BFS", "rama", busqueda_amplitud(problema)),
+        ("UCS", "rama", busqueda_costo_uniforme(problema)),
+        ("DFS", "rama", busqueda_profundidad(problema)),
+        # Alternativa "global" para BFS y UCS.
         ("BFS", "global", busqueda_amplitud(problema, modo_ciclos="global")),
         ("UCS", "global", busqueda_costo_uniforme(problema, modo_ciclos="global")),
-        ("DFS", "rama", busqueda_profundidad(problema, modo_ciclos="rama")),
-        ("BFS", "rama", busqueda_amplitud(
-            problema, modo_ciclos="rama", limite_nodos=LIMITE_RAMA)),
-        ("UCS", "rama", busqueda_costo_uniforme(
-            problema, modo_ciclos="rama", limite_nodos=LIMITE_RAMA)),
     ]
 
     print(
@@ -64,8 +64,7 @@ def main() -> None:
     for nombre, modo, r in experimentos:
         print(fila(nombre, modo, r))
         if r.limite_alcanzado:
-            print(f"  (nota: {nombre} {modo} chocó con el límite de "
-                  f"{LIMITE_RAMA} nodos)")
+            print(f"  (nota: {nombre} {modo} chocó con el límite de nodos)")
 
 
 if __name__ == "__main__":
