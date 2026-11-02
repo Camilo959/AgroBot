@@ -12,7 +12,7 @@ Documento corto para modificar la UI sin tocar el core ni los algoritmos.
 | `componentes.py` | Botones, tarjetas, títulos, etiquetas, campos, selector y filas clave-valor ya estilizados. |
 | `sesion.py` | `SesionJuego`, estado compartido entre pantallas. |
 | `board_view.py` | Tablero estático en un `Canvas` de tkinter. |
-| `animator.py` | Animación pygame ejecutada en otro proceso. |
+| `animator.py` | Animación pygame ejecutada en otro proceso; el panel lateral muestra el resumen de la búsqueda arriba y el estado en vivo abajo. |
 | `report_panel.py` | Lógica pura del reporte y del costo por paso. |
 | `runner.py` | Búsqueda en proceso hijo y cancelación. |
 | `app.py` | Ventana principal y gestor de pantallas. |
@@ -98,6 +98,19 @@ parámetros usan `{nombre}` y se leen con `textos.t("clave", nombre=...)`.
    `screens/juego.py`.
 4. Si reporta costo, incluirlo en
    `report_panel.ALGORITMOS_CON_COSTO`.
+
+## Resumen dentro de la animación
+
+La ventana pygame recibe las mismas filas del reporte que la pantalla de
+resumen:
+
+- `report_panel.construir_reporte_completo(resultado, algoritmo, ruta)`
+  genera las filas (incluida "Mundo").
+- `resumen._lanzar_animacion` las pasa a
+  `animator.lanzar_animacion(ruta, estados, titulo, resumen)`.
+- `animator._dibujar_hud` pinta el resumen arriba y el estado en vivo
+  abajo. El ancho del panel y el alto mínimo están en `theme.py`
+  (`ANCHO_HUD_ANIMACION`, `ALTO_MINIMO_ANIMACION`).
 
 ## Notas
 

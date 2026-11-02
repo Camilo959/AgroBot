@@ -56,6 +56,24 @@ def test_reporte_con_costo_para_costo_uniforme_y_astar():
         assert filas[textos.t("reporte_costo")] == "1.5"
 
 
+def test_reporte_completo_incluye_mundo():
+    filas = dict(
+        report_panel.construir_reporte_completo(
+            _resultado(), "costo_uniforme", "worlds/Prueba1.txt"
+        )
+    )
+    assert filas[textos.t("reporte_mundo")] == "Prueba1.txt"
+    assert filas[textos.t("reporte_costo")] == "1.5"
+    assert filas[textos.t("reporte_estado")] == textos.t("reporte_exito")
+
+
+def test_reporte_completo_sin_ruta_no_agrega_mundo():
+    filas = dict(
+        report_panel.construir_reporte_completo(_resultado(), "amplitud")
+    )
+    assert textos.t("reporte_mundo") not in filas
+
+
 def test_reporte_sin_solucion():
     filas = dict(
         report_panel.construir_reporte(_resultado(exito=False), "amplitud")

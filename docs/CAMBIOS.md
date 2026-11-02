@@ -276,3 +276,35 @@ Supuestos y notas:
   sí se verificó que la ventana de pygame se abre y permanece viva.
 - Sigue fuera de alcance: Avara, A* y heurísticas (visibles y
   deshabilitados con "próximamente").
+
+---
+
+## 2026-11-02 — Resumen de la búsqueda dentro de la animación
+
+Se mantiene el flujo cálculo → pantalla de resumen → animación. La ventana
+pygame ahora muestra, en su panel lateral derecho, el resumen de la
+búsqueda arriba y el estado en vivo de la animación abajo.
+
+Archivos modificados:
+
+- `ui/report_panel.py`: nuevo `construir_reporte_completo(resultado,
+  algoritmo, ruta_mundo)`, que reutiliza `construir_reporte` y agrega la
+  fila "Mundo". Lo usan la pantalla de resumen y la animación.
+- `ui/screens/resumen.py`: usa el reporte completo (sin duplicar la fila
+  del mundo) y pasa las filas a `lanzar_animacion`.
+- `ui/animator.py`: `ejecutar_animacion` y `lanzar_animacion` aceptan
+  `resumen`; `_dibujar_hud` lo pinta arriba (título "Resumen de la
+  búsqueda", filas clave-valor) y debajo el bloque en vivo existente.
+  Alto mínimo de ventana según `theme.ALTO_MINIMO_ANIMACION`.
+- `ui/theme.py`: `ANCHO_HUD_ANIMACION` pasa de 320 a 420 y se agrega
+  `ALTO_MINIMO_ANIMACION = 700`.
+- `ui/textos.py`: nuevas claves "Resumen de la búsqueda" y "Estado de la
+  animación".
+- `tests/test_ui_logica.py`: pruebas de `construir_reporte_completo`
+  (incluye "Mundo"; sin ruta no lo agrega).
+- `README.md` y `ui/README_UI.md`: documentación del nuevo panel.
+
+Resultado: `pytest -v` → **60 passed** (68.42 s). Se revisó una captura
+del HUD (900×700) y el resumen no se solapa con los datos en vivo ni con
+los controles. Prueba de humo: animación lanzada con el resumen en un
+proceso `spawn`, viva tras 4 s.

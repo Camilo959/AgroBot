@@ -106,11 +106,35 @@ def _dibujar_tablero(pygame: object, pantalla: object, world: World,
         )
 
 
+def _dibujar_resumen(pygame: object, pantalla: object,
+                     resumen: list[tuple[str, str]], x: int, y: int,
+                     ancho: int, fuente_titulo: object,
+                     fuente_fila: object) -> int:
+    """Dibuja el resumen estático de la búsqueda y devuelve la nueva `y`."""
+    _texto(
+        pantalla, fuente_titulo, textos.t("anim_resumen"),
+        theme.COLOR_TEXTO, (x, y),
+    )
+    y += theme.TAM_FUENTE_HUD + 4
+    for clave, valor in resumen:
+        _texto(
+            pantalla, fuente_fila, clave, theme.COLOR_TEXTO_SUAVE, (x, y)
+        )
+        ancho_valor = fuente_fila.size(valor)[0]
+        _texto(
+            pantalla, fuente_fila, valor, theme.COLOR_TEXTO,
+            (x + ancho - ancho_valor, y),
+        )
+        y += theme.TAM_FUENTE_PEQUENA + 5
+    return y
+
+
 def _dibujar_hud(pygame: object, pantalla: object, alto: int, world: World,
                  estado: Estado, paso: int, total: int, costo: float,
                  velocidad: float, pausado: bool, sprites: dict[str, object],
-                 tam: int) -> None:
-    """Dibuja el panel lateral con el estado de la animación."""
+                 tam: int,
+                 resumen: list[tuple[str, str]] | None = None) -> None:
+    """Dibuja el panel lateral: resumen arriba y estado en vivo abajo."""
     x0 = world.columnas * tam
     ancho = theme.ANCHO_HUD_ANIMACION
     alto_hud = alto
@@ -124,13 +148,31 @@ def _dibujar_hud(pygame: object, pantalla: object, alto: int, world: World,
     )
 
     titulo = _fuente(pygame, theme.TAM_FUENTE_HUD_GRANDE, True)
+    negrita = _fuente(pygame, theme.TAM_FUENTE_HUD, True)
     normal = _fuente(pygame, theme.TAM_FUENTE_HUD)
     pequena = _fuente(pygame, theme.TAM_FUENTE_PEQUENA)
 
     px = x0 + theme.PADDING
+    ancho_util = ancho - 2 * theme.PADDING
     py = theme.PADDING
     _texto(pantalla, titulo, textos.t("app_titulo"), theme.COLOR_TEXTO, (px, py))
     py += theme.TAM_FUENTE_HUD_GRANDE + theme.PADDING_CHICO
+
+    if resumen:
+        py = _dibujar_resumen(
+            pygame, pantalla, resumen, px, py, ancho_util, negrita, pequena
+        )
+        pygame.draw.line(
+            pantalla, theme.COLOR_BORDE,
+            (px, py), (x0 + ancho - theme.PADDING, py), 2,
+        )
+        py += theme.PADDING_CHICO
+
+    _texto(
+        pantalla, negrita, textos.t("anim_en_vivo"),
+        theme.COLOR_TEXTO, (px, py),
+    )
+    py += theme.TAM_FUENTE_HUD + 2
     _texto(
         pantalla, normal,
         textos.t("anim_paso", actual=paso + 1, total=total),
@@ -237,9 +279,16 @@ def _dibujar_hud(pygame: object, pantalla: object, alto: int, world: World,
         py += theme.TAM_FUENTE_PEQUENA + 2
 
 
-def ejecutar_animacion(ruta_mundo: str, estados: list[Estado],
-                       titulo: str) -> None:
+def ejecutar_animacion(
+    ruta_mundo: str,
+    estados: list[Estado],
+    titulo: str,
+    resumen: list[tuple[str, str]] | None = None,
+) -> None:
     """Abre la ventana de pygame y reproduce la lista de estados.
+
+    `resumen` contiene las filas (etiqueta, valor) del reporte de la
+    búsqueda; se dibujan en la parte superior del panel lateral.
 
     Función objetivo del proceso hijo: debe ejecutarse con "spawn".
     """
@@ -252,7 +301,10 @@ def ejecutar_animacion(ruta_mundo: str, estados: list[Estado],
         tam = theme.TAM_CELDA
         ancho_tablero = world.columnas * tam
         alto_tablero = world.filas * tam
-        alto = max(alto_tablero + 2 * theme.PADDING_CHICO, 560)
+        alto = max(
+            alto_tablero + 2 * theme.PADDING_CHICO,
+            theme.ALTO_MINIMO_ANIMACION,
+        )
         ancho = ancho_tablero + theme.ANCHO_HUD_ANIMACION
 
         pantalla = pygame.display.set_mode((ancho, alto))
@@ -312,19 +364,25 @@ def ejecutar_animacion(ruta_mundo: str, estados: list[Estado],
                 _dibujar_hud(
                     pygame, pantalla, alto, world, estado, paso, total,
                     acumulados[paso], velocidad, pausado, sprites, tam,
+                    resumen,
                 )
             pygame.display.flip()
     finally:
         pygame.quit()
 
 
-def lanzar_animacion(ruta_mundo: str, estados: list[Estado], titulo: str) -> None:
+def lanzar_animacion(
+    ruta_mundo: str,
+    estados: list[Estado],
+    titulo: str,
+    resumen: list[tuple[str, str]] | None = None,
+) -> None:
     """Lanza la animación en un proceso nuevo con contexto "spawn"."""
     global _proceso
     detener_animacion()
     _proceso = _contexto.Process(
         target=ejecutar_animacion,
-        args=(ruta_mundo, estados, titulo),
+        args=(ruta_mundo, estados, titulo, resumen),
         daemon=True,
     )
     _proceso.start()

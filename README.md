@@ -83,9 +83,12 @@ Customtkinter y pygame no comparten proceso:
 | R | Reiniciar |
 | Esc | Cerrar la animación |
 
-El HUD muestra paso, fertilizante, combustible, costo acumulado y la
-leyenda de controles. La velocidad y los colores se configuran en
-`ui/theme.py`.
+El panel lateral de la animación muestra, arriba, el **resumen de la
+búsqueda** (algoritmo, estado, nodos expandidos, profundidad del árbol,
+tiempo, pasos, costo cuando aplica y mundo) y, abajo, el estado en vivo
+(paso, fertilizante, combustible, costo acumulado) más la leyenda de
+controles. La velocidad, el ancho del panel y los colores se configuran
+en `ui/theme.py`.
 
 ## Supuestos de diseño
 

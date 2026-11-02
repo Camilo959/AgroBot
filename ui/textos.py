@@ -79,6 +79,8 @@ TEXTOS: dict[str, str] = {
     "reporte_sin_solucion": "Sin solución",
     # Animación
     "anim_titulo": "AgroBot — {algoritmo}",
+    "anim_resumen": "Resumen de la búsqueda",
+    "anim_en_vivo": "Estado de la animación",
     "anim_paso": "Paso {actual} / {total}",
     "anim_fertilizante": "Fertilizante",
     "anim_combustible": "Combustible",

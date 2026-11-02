@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import customtkinter as ctk
 
 from ui import animator, report_panel, theme, textos
@@ -99,17 +97,10 @@ class ResumenScreen(ctk.CTkFrame):
             self.boton_animacion.grid_remove()
             return
 
-        for clave, valor in report_panel.construir_reporte(
-            resultado, self.sesion.algoritmo
+        for clave, valor in report_panel.construir_reporte_completo(
+            resultado, self.sesion.algoritmo, self.sesion.ruta_mundo
         ):
             FilaClaveValor(self._frame_filas, clave, valor).pack(fill="x", pady=2)
-
-        if self.sesion.ruta_mundo:
-            FilaClaveValor(
-                self._frame_filas,
-                textos.t("reporte_mundo"),
-                Path(self.sesion.ruta_mundo).name,
-            ).pack(fill="x", pady=2)
 
         if resultado.exito:
             self.lbl_estado.configure(text=textos.t("resumen_exito"))
@@ -138,8 +129,11 @@ class ResumenScreen(ctk.CTkFrame):
             "anim_titulo",
             algoritmo=report_panel.nombre_algoritmo(self.sesion.algoritmo),
         )
+        resumen = report_panel.construir_reporte_completo(
+            resultado, self.sesion.algoritmo, self.sesion.ruta_mundo
+        )
         animator.lanzar_animacion(
-            self.sesion.ruta_mundo, resultado.estados, titulo
+            self.sesion.ruta_mundo, resultado.estados, titulo, resumen
         )
         self.boton_animacion.configure(
             text=textos.t("boton_repetir_animacion")

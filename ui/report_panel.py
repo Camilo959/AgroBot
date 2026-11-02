@@ -5,6 +5,8 @@ No depende de tkinter ni de pygame para poder probarse sin abrir ventanas.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from core.state import Estado
 from algorithms.base import Resultado
 from ui import textos
@@ -85,4 +87,22 @@ def construir_reporte(
                 (textos.t("reporte_costo"), f"{resultado.costo:.1f}")
             )
 
+    return filas
+
+
+def construir_reporte_completo(
+    resultado: Resultado,
+    algoritmo: str | None,
+    ruta_mundo: str | Path | None = None,
+) -> list[tuple[str, str]]:
+    """Reporte del resumen más la fila del mundo cargado (si se conoce).
+
+    Se usa tanto en la pantalla de resumen como en el HUD de la animación
+    para que ambos muestren exactamente las mismas filas.
+    """
+    filas = construir_reporte(resultado, algoritmo)
+    if ruta_mundo:
+        filas.append(
+            (textos.t("reporte_mundo"), Path(ruta_mundo).name)
+        )
     return filas
