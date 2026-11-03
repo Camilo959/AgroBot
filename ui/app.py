@@ -9,7 +9,6 @@ from ui.screens import PANTALLAS
 from ui.sesion import SesionJuego
 
 TAMANOS: dict[str, tuple[int, int]] = {
-    "inicio": theme.TAM_VENTANA_INICIO,
     "juego": theme.TAM_VENTANA_JUEGO,
     "resumen": theme.TAM_VENTANA_RESUMEN,
 }
@@ -41,7 +40,7 @@ class AgroBotApp(ctk.CTk):
             self.pantallas[nombre] = pantalla
 
         self.protocol("WM_DELETE_WINDOW", self.cerrar)
-        self.ir_a("inicio")
+        self.ir_a("juego")
 
     def ir_a(self, nombre: str) -> None:
         """Muestra la pantalla indicada y llama a su `al_mostrar`."""

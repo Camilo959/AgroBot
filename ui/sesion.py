@@ -11,7 +11,7 @@ from ui import theme
 
 @dataclass
 class SesionJuego:
-    """Datos que comparten las pantallas de inicio, juego y resumen.
+    """Datos que comparten la pantalla principal y la de resumen.
 
     Atributos:
         ruta_mundo: ruta del archivo del mundo cargado.

@@ -30,9 +30,11 @@ class MiPantalla(ctk.CTkFrame):
 - `al_mostrar(self)` se llama **cada vez** que se navega a la pantalla;
   ahí se sincroniza la vista con `app.sesion`.
 - La pantalla lee y escribe únicamente en `app.sesion` y navega con
-  `app.ir_a("inicio" | "juego" | "resumen")`.
+  `app.ir_a("juego" | "resumen")`.
 - Las pantallas usan solo widgets de `componentes.py`; no usan colores ni
   fuentes directas.
+- La portada (título, subtítulo y robot) vive dentro de `JuegoScreen`, que
+  es la pantalla inicial de la aplicación.
 
 ## Cómo cambiar una pantalla
 
@@ -43,7 +45,6 @@ class MiPantalla(ctk.CTkFrame):
 
 ```python
 PANTALLAS = {
-    "inicio": InicioScreen,
     "juego": MiJuegoScreen,   # antes JuegoScreen
     "resumen": ResumenScreen,
 }
@@ -106,11 +107,23 @@ resumen:
 
 - `report_panel.construir_reporte_completo(resultado, algoritmo, ruta)`
   genera las filas (incluida "Mundo").
-- `resumen._lanzar_animacion` las pasa a
+- `juego._lanzar_animacion` (tras **Ejecutar**) las pasa a
   `animator.lanzar_animacion(ruta, estados, titulo, resumen)`.
 - `animator._dibujar_hud` pinta el resumen arriba y el estado en vivo
   abajo. El ancho del panel y el alto mínimo están en `theme.py`
   (`ANCHO_HUD_ANIMACION`, `ALTO_MINIMO_ANIMACION`).
+
+## Flujo animación → resultados
+
+1. Al terminar la búsqueda con solución se abre la animación; el reporte
+   no se muestra automáticamente.
+2. Al llegar al último paso aparece el botón "Ver Resultados Detallados"
+   en el HUD. Al pulsarlo se cierra la animación y se abre el resumen.
+3. Si la animación se cierra antes, el botón aparece en la pantalla
+   principal. También aparece ahí de inmediato si no hay solución o se
+   alcanzó el límite.
+4. La animación lanzada desde el resumen ("Ver animación / Repetir
+   animación") no muestra ese botón: el reporte ya está abierto.
 
 ## Notas
 

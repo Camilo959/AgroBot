@@ -1,4 +1,4 @@
-"""Pantalla de juego: carga del mundo, configuración y ejecución."""
+"""Pantalla principal: cabecera de inicio, tablero y panel de control."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from core.world import World
-from ui import runner, theme, textos
+from ui import assets_loader, animator, report_panel, runner, theme, textos
 from ui.board_view import TableroCanvas
 from ui.componentes import (
     BotonPeligro,
@@ -19,6 +19,7 @@ from ui.componentes import (
     Contenedor,
     Etiqueta,
     EtiquetaPequena,
+    Imagen,
     Opcion,
     SelectorSegmentado,
     Separador,
@@ -39,12 +40,13 @@ ALGORITMOS_INFORMADA: list[tuple[str, str]] = [
 
 
 class JuegoScreen(ctk.CTkFrame):
-    """Tablero a la izquierda y panel de control a la derecha."""
+    """Pantalla principal: portada, tablero y panel de control."""
 
     def __init__(self, master: object, app: object) -> None:
         super().__init__(master, fg_color=theme.COLOR_FONDO)
         self.app = app
         self._poll_id: str | None = None
+        self._poll_animacion_id: str | None = None
         self._var_algoritmo = tk.StringVar(value="")
         self._var_limite = tk.StringVar(value=str(theme.LIMITE_NODOS_DEFECTO))
         self._radios: list[Opcion] = []
@@ -55,14 +57,45 @@ class JuegoScreen(ctk.CTkFrame):
         return self.app.sesion
 
     def _construir(self) -> None:
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
+
+        cabecera = Tarjeta(self)
+        cabecera.grid(
+            row=0, column=0, columnspan=2, sticky="ew",
+            padx=theme.PADDING,
+            pady=(theme.PADDING, theme.PADDING_CHICO),
+        )
+        interior_cabecera = Contenedor(cabecera)
+        interior_cabecera.pack(
+            fill="x", padx=theme.PADDING, pady=theme.PADDING_CHICO
+        )
+        imagen = assets_loader.cargar_robot(theme.TAM_ROBOT_JUEGO)
+        self._imagen_robot = ctk.CTkImage(
+            light_image=imagen,
+            size=(theme.TAM_ROBOT_JUEGO, theme.TAM_ROBOT_JUEGO),
+        )
+        Imagen(interior_cabecera, image=self._imagen_robot).pack(
+            side="left", padx=(0, theme.PADDING)
+        )
+        textos_cabecera = Contenedor(interior_cabecera)
+        textos_cabecera.pack(side="left", fill="x", expand=True)
+        Titulo(
+            textos_cabecera, text=textos.t("inicio_titulo")
+        ).pack(anchor="w")
+        EtiquetaPequena(
+            textos_cabecera,
+            text=textos.t("inicio_subtitulo"),
+            wraplength=700,
+            anchor="w",
+            justify="left",
+        ).pack(anchor="w")
 
         tarjeta_tablero = Tarjeta(self)
         tarjeta_tablero.grid(
-            row=0, column=0, sticky="nsew",
+            row=1, column=0, sticky="nsew",
             padx=(theme.PADDING, theme.PADDING_CHICO),
-            pady=theme.PADDING,
+            pady=(theme.PADDING_CHICO, theme.PADDING),
         )
         tarjeta_tablero.grid_rowconfigure(0, weight=1)
         tarjeta_tablero.grid_columnconfigure(0, weight=1)
@@ -74,9 +107,9 @@ class JuegoScreen(ctk.CTkFrame):
 
         panel = Tarjeta(self, width=theme.ANCHO_PANEL_JUEGO)
         panel.grid(
-            row=0, column=1, sticky="ns",
+            row=1, column=1, sticky="ns",
             padx=(theme.PADDING_CHICO, theme.PADDING),
-            pady=theme.PADDING,
+            pady=(theme.PADDING_CHICO, theme.PADDING),
         )
         panel.pack_propagate(False)
 
@@ -158,10 +191,16 @@ class JuegoScreen(ctk.CTkFrame):
             command=self._cancelar,
         )
 
+        self.boton_resultados = BotonPrimario(
+            interior,
+            text=textos.t("boton_resultados"),
+            command=self._ver_resultados,
+        )
+
         self.boton_volver = BotonSecundario(
             interior,
-            text=textos.t("boton_volver"),
-            command=lambda: self.app.ir_a("inicio"),
+            text=textos.t("boton_salir"),
+            command=self.app.cerrar,
         )
         self.boton_volver.pack(fill="x", pady=(theme.PADDING_CHICO, 0))
 
@@ -177,6 +216,7 @@ class JuegoScreen(ctk.CTkFrame):
             self.sesion.world is not None
             and self.sesion.algoritmo in runner.ALGORITMOS
             and self.sesion.estado_busqueda != "buscando"
+            and not animator.en_ejecucion()
         )
         self.boton_ejecutar.configure(state="normal" if valido else "disabled")
 
@@ -273,6 +313,7 @@ class JuegoScreen(ctk.CTkFrame):
         self.sesion.resultado = None
         self.sesion.error = None
         self.sesion.estado_busqueda = "buscando"
+        self._ocultar_resultados()
         runner.iniciar(
             self.sesion.ruta_mundo, self.sesion.algoritmo, limite
         )
@@ -301,7 +342,11 @@ class JuegoScreen(ctk.CTkFrame):
             self.sesion.resultado = resultado
             self.sesion.estado_busqueda = "listo"
             self._modo_buscando(False)
-            self.app.ir_a("resumen")
+            if resultado.exito:
+                self._lanzar_animacion()
+            else:
+                self._mostrar_resultados()
+                self._poner_estado(textos.t("estado_sin_animacion"))
             return
 
         if not runner.en_ejecucion():
@@ -313,6 +358,64 @@ class JuegoScreen(ctk.CTkFrame):
             return
 
         self._programar_consulta()
+
+    def _lanzar_animacion(self) -> None:
+        """Lanza la animación sin abrir todavía el reporte."""
+        resultado = self.sesion.resultado
+        if (
+            resultado is None
+            or not resultado.exito
+            or self.sesion.ruta_mundo is None
+        ):
+            return
+        titulo = textos.t(
+            "anim_titulo",
+            algoritmo=report_panel.nombre_algoritmo(self.sesion.algoritmo),
+        )
+        resumen = report_panel.construir_reporte_completo(
+            resultado, self.sesion.algoritmo, self.sesion.ruta_mundo
+        )
+        animator.lanzar_animacion(
+            self.sesion.ruta_mundo, resultado.estados, titulo, resumen
+        )
+        self._poner_estado(textos.t("estado_animando"))
+        self._programar_consulta_animacion()
+        self._actualizar_ejecutar()
+
+    def _programar_consulta_animacion(self) -> None:
+        self._poll_animacion_id = self.after(
+            theme.INTERVALO_CONSULTA_MS, self._consultar_animacion
+        )
+
+    def _consultar_animacion(self) -> None:
+        self._poll_animacion_id = None
+        if animator.solicita_resultados():
+            animator.detener_animacion()
+            self._ver_resultados()
+            return
+        if not animator.en_ejecucion():
+            self._mostrar_resultados()
+            self._poner_estado(textos.t("estado_animacion_cerrada"))
+            self._actualizar_ejecutar()
+            return
+        self._programar_consulta_animacion()
+
+    def _mostrar_resultados(self) -> None:
+        self.boton_resultados.pack(
+            fill="x",
+            pady=(theme.PADDING, 0),
+            before=self.boton_volver,
+        )
+
+    def _ocultar_resultados(self) -> None:
+        self.boton_resultados.pack_forget()
+
+    def _ver_resultados(self) -> None:
+        self._ocultar_resultados()
+        if self._poll_animacion_id is not None:
+            self.after_cancel(self._poll_animacion_id)
+            self._poll_animacion_id = None
+        self.app.ir_a("resumen")
 
     def _modo_buscando(self, activo: bool) -> None:
         self.boton_ejecutar.pack_forget()

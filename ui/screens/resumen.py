@@ -24,7 +24,6 @@ class ResumenScreen(ctk.CTkFrame):
     def __init__(self, master: object, app: object) -> None:
         super().__init__(master, fg_color=theme.COLOR_FONDO)
         self.app = app
-        self._animado: object | None = None
         self._construir()
 
     @property
@@ -62,7 +61,6 @@ class ResumenScreen(ctk.CTkFrame):
         acciones.pack(fill="x")
         acciones.grid_columnconfigure(0, weight=1)
         acciones.grid_columnconfigure(1, weight=1)
-        acciones.grid_columnconfigure(2, weight=1)
 
         self.boton_animacion = BotonPrimario(
             acciones,
@@ -76,12 +74,6 @@ class ResumenScreen(ctk.CTkFrame):
             text=textos.t("boton_otro_algoritmo"),
             command=lambda: self.app.ir_a("juego"),
         ).grid(row=0, column=1, padx=4, sticky="ew")
-
-        BotonSecundario(
-            acciones,
-            text=textos.t("boton_inicio"),
-            command=lambda: self.app.ir_a("inicio"),
-        ).grid(row=0, column=2, padx=4, sticky="ew")
 
     def _limpiar_filas(self) -> None:
         for widget in self._frame_filas.winfo_children():
@@ -133,20 +125,18 @@ class ResumenScreen(ctk.CTkFrame):
             resultado, self.sesion.algoritmo, self.sesion.ruta_mundo
         )
         animator.lanzar_animacion(
-            self.sesion.ruta_mundo, resultado.estados, titulo, resumen
+            self.sesion.ruta_mundo, resultado.estados, titulo, resumen,
+            mostrar_boton=False,
         )
         self.boton_animacion.configure(
             text=textos.t("boton_repetir_animacion")
         )
 
     def al_mostrar(self) -> None:
-        """Refresca el reporte y lanza la animación una vez si hubo solución."""
+        """Refresca el reporte; la animación se lanza solo si se pide."""
         self._actualizar()
         resultado = self.sesion.resultado
-        if (
-            resultado is not None
-            and resultado.exito
-            and resultado is not self._animado
-        ):
-            self._animado = resultado
-            self._lanzar_animacion()
+        if resultado is not None and resultado.exito:
+            self.boton_animacion.configure(
+                text=textos.t("boton_animacion")
+            )

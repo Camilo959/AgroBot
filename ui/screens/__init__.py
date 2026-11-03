@@ -7,14 +7,12 @@ de este diccionario.
 
 from __future__ import annotations
 
-from ui.screens.inicio import InicioScreen
 from ui.screens.juego import JuegoScreen
 from ui.screens.resumen import ResumenScreen
 
 PANTALLAS: dict[str, type] = {
-    "inicio": InicioScreen,
     "juego": JuegoScreen,
     "resumen": ResumenScreen,
 }
 
-__all__ = ["PANTALLAS", "InicioScreen", "JuegoScreen", "ResumenScreen"]
+__all__ = ["PANTALLAS", "JuegoScreen", "ResumenScreen"]

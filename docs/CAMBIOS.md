@@ -308,3 +308,90 @@ Resultado: `pytest -v` → **60 passed** (68.42 s). Se revisó una captura
 del HUD (900×700) y el resumen no se solapa con los datos en vivo ni con
 los controles. Prueba de humo: animación lanzada con el resumen en un
 proceso `spawn`, viva tras 4 s.
+
+---
+
+## 2026-11-02 — Fusionar Inicio con Juego (dos pantallas)
+
+Se eliminó la pantalla de Inicio como pantalla independiente y su contenido
+se integró en la pantalla principal (`JuegoScreen`). La aplicación ahora
+arranca directamente en esa pantalla combinada; la ventana de animación y
+la pantalla de Resumen se mantienen.
+
+Archivos modificados:
+
+- `ui/screens/juego.py`: nueva cabecera con el robot, título "AgroBot" y
+  subtítulo; el tablero y el panel bajan a la fila siguiente. El botón
+  inferior pasa de "Volver al inicio" a "Salir" (cierra la aplicación).
+- `ui/screens/inicio.py` (eliminado): su contenido vive ahora en la
+  cabecera de `JuegoScreen`.
+- `ui/screens/__init__.py`: `PANTALLAS` queda con `"juego"` y `"resumen"`
+  (se quita `InicioScreen`).
+- `ui/app.py`: la aplicación inicia en `"juego"`; se elimina el tamaño de
+  ventana de inicio.
+- `ui/screens/resumen.py`: el botón "Inicio" navega ahora a `"juego"`
+  (la pantalla principal combinada).
+- `ui/theme.py`: se quitan `TAM_ROBOT_INICIO` y `TAM_VENTANA_INICIO`; se
+  agrega `TAM_ROBOT_JUEGO = 84`.
+- `ui/textos.py`: se retiran textos ya sin uso ("Comenzar" y "Volver al
+  inicio"); se conservan título y subtítulo de portada.
+- `ui/sesion.py`: docstring actualizado (pantalla principal y resumen).
+- `tests/test_ui_logica.py`: el registro de pantallas ahora debe contener
+  `{"juego", "resumen"}`.
+- `README.md` y `ui/README_UI.md`: documentación del nuevo flujo de dos
+  pantallas.
+
+Resultado: `pytest -v` → **60 passed** (61.00 s). Se revisó una captura
+de la pantalla combinada: cabecera con robot, título y subtítulo, tablero
+y panel con "Salir" visibles, sin recortes. `python main.py` arrancó y
+permaneció vivo 7 s sin errores; el flujo búsqueda → resumen → animación
+siguió funcionando.
+
+---
+
+## 2026-11-02 — Quitar el botón "Inicio" del resumen
+
+En `ui/screens/resumen.py` se eliminó el botón "Inicio" porque hacía lo
+mismo que "Probar otro algoritmo" (volver a la pantalla principal). Las
+acciones del resumen quedan en dos columnas: "Ver animación" / "Repetir
+animación" y "Probar otro algoritmo". También se retiró la clave
+`boton_inicio` de `ui/textos.py`.
+
+Resultado: `pytest -v` → **60 passed**.
+
+---
+
+## 2026-11-02 — Animación primero y botón "Ver Resultados Detallados"
+
+Nuevo flujo: al pulsar **Ejecutar**, la búsqueda calcula y se abre la
+animación directamente; el reporte ya no aparece automáticamente.
+
+- Al llegar al último paso, el HUD de pygame muestra el botón **"Ver
+  Resultados Detallados"**.
+- Al pulsarlo se cierra la animación y se navega a la pantalla de resumen.
+- Si la animación se cierra antes de la meta, el mismo botón aparece en
+  la pantalla principal.
+- Si la búsqueda no tiene solución o alcanza el límite (no hay
+  animación), el botón aparece de inmediato en la pantalla principal.
+- La animación lanzada desde el resumen no muestra ese botón.
+
+Archivos modificados:
+
+- `ui/animator.py`: eventos `solicitud_resultados` y `terminada`,
+  `solicita_resultados()`, `termino()`, botón dibujado en el HUD y
+  detección de clic; parámetro `mostrar_boton`.
+- `ui/screens/juego.py`: al terminar la búsqueda lanza la animación (no
+  navega), vigila su estado con `after(...)`, muestra el botón de respaldo
+  y navega al resumen solo al pulsarlo.
+- `ui/screens/resumen.py`: se quitó el auto-lanzamiento de la animación;
+  la animación desde el resumen no muestra el botón de resultados.
+- `ui/textos.py`: "Ver Resultados Detallados" y mensajes de estado.
+- `tests/test_ui_logica.py`: prueba de geometría del botón.
+- `README.md` y `ui/README_UI.md`: flujo actualizado.
+
+Resultado: `pytest -v` → **61 passed** (66.26 s). Pruebas de humo:
+el reporte no se abrió automáticamente; al cerrar la animación antes de
+la meta apareció el botón en la pantalla principal; al simular el clic
+del botón del HUD se navegó al resumen; con un mundo sin solución el
+botón apareció de inmediato sin abrir el reporte. Captura del HUD
+revisada: el botón se dibuja sin solaparse con los controles.

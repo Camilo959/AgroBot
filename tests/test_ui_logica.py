@@ -6,7 +6,7 @@ from PIL import Image
 
 from algorithms.base import Resultado
 from core.state import Estado
-from ui import assets_loader, report_panel, theme, textos
+from ui import assets_loader, animator, report_panel, theme, textos
 from ui.screens import PANTALLAS
 
 
@@ -121,6 +121,16 @@ def test_geometria_de_celdas():
     assert theme.ajustar_tam_celda(500, 500, 10, 10) == 48
 
 
+def test_rect_boton_resultados_no_se_solapa_con_controles():
+    x, y, ancho, alto = animator.rect_boton_resultados(
+        theme.ALTO_MINIMO_ANIMACION, 480, theme.ANCHO_HUD_ANIMACION
+    )
+    assert x == 480 + theme.PADDING
+    assert ancho == theme.ANCHO_HUD_ANIMACION - 2 * theme.PADDING
+    assert alto == animator.ALTO_BOTON_RESULTADOS
+    assert y + alto < theme.ALTO_MINIMO_ANIMACION - 150
+
+
 def test_preprocesado_robot(tmp_path):
     destino = tmp_path / "robot_128.png"
     resultado = assets_loader.preprocesar_robot(
@@ -153,6 +163,6 @@ def test_nearest_conserva_tamano_en_sprites_de_16_px():
 
 
 def test_registro_de_pantallas():
-    assert set(PANTALLAS) == {"inicio", "juego", "resumen"}
+    assert set(PANTALLAS) == {"juego", "resumen"}
     for clase in PANTALLAS.values():
         assert callable(clase)

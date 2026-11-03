@@ -15,7 +15,6 @@ TEXTOS: dict[str, str] = {
     "inicio_subtitulo": (
         "Un agente que recorre la granja para fertilizar todos los cultivos secos."
     ),
-    "boton_comenzar": "Comenzar",
     "boton_salir": "Salir",
     # Juego
     "juego_titulo": "Planificar la misión",
@@ -33,7 +32,6 @@ TEXTOS: dict[str, str] = {
     "limite_ayuda": "Avanzado: corta la búsqueda si crece demasiado.",
     "boton_ejecutar": "Ejecutar",
     "boton_cancelar": "Cancelar",
-    "boton_volver": "Volver al inicio",
     "estado_inactivo": "Elige un mundo y un algoritmo.",
     "estado_buscando": "Buscando...",
     "estado_cancelado": "Búsqueda cancelada.",
@@ -64,7 +62,16 @@ TEXTOS: dict[str, str] = {
     "boton_animacion": "Ver animación",
     "boton_repetir_animacion": "Repetir animación",
     "boton_otro_algoritmo": "Probar otro algoritmo",
-    "boton_inicio": "Inicio",
+    "boton_resultados": "Ver Resultados Detallados",
+    "estado_animando": (
+        "Animación en curso. Al terminar podrás ver los resultados detallados."
+    ),
+    "estado_animacion_cerrada": (
+        "Animación cerrada. Puedes ver los resultados detallados."
+    ),
+    "estado_sin_animacion": (
+        "Búsqueda terminada. Puedes ver los resultados detallados."
+    ),
     # Reporte
     "reporte_algoritmo": "Algoritmo",
     "reporte_estado": "Estado",
@@ -92,7 +99,7 @@ TEXTOS: dict[str, str] = {
     "anim_velocidad": "x{valor}",
     "anim_pausa": "En pausa",
     "anim_controles": (
-        "Espacio: pausa   ←/→: paso   ↑/↓: velocidad   R: reiniciar   Esc: cerrar"
+        "Espacio: pausa   izquierda/derecha: paso   arriba/abajo: velocidad   R: reiniciar   Esc: cerrar"
     ),
 }
 

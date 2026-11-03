@@ -56,10 +56,11 @@ pytest -v
 python main.py
 ```
 
-La interfaz tiene tres pantallas: **Inicio**, **Juego** (cargar mundo,
-elegir algoritmo y ejecutar) y **Resumen** (reporte y animación). En la
-pantalla de juego, "Informada" muestra Avara y A* deshabilitados con la
-leyenda "próximamente".
+La interfaz tiene dos pantallas: la **principal** (cabecera de inicio,
+carga de mundo, elección de algoritmo, ejecución y tablero) y el
+**Resumen** (reporte y acceso a la animación). La portada anterior se
+fusionó con la pantalla principal. En la pantalla principal, "Informada"
+muestra Avara y A* deshabilitados con la leyenda "próximamente".
 
 ### Arquitectura de procesos
 
@@ -89,6 +90,16 @@ tiempo, pasos, costo cuando aplica y mundo) y, abajo, el estado en vivo
 (paso, fertilizante, combustible, costo acumulado) más la leyenda de
 controles. La velocidad, el ancho del panel y los colores se configuran
 en `ui/theme.py`.
+
+### Flujo de resultados
+
+Al pulsar **Ejecutar** se calcula la búsqueda y se abre directamente la
+animación, sin mostrar el reporte. Al llegar a la meta aparece en el HUD
+el botón **"Ver Resultados Detallados"**; el reporte solo se abre al
+pulsarlo. Si la animación se cierra antes de la meta, el botón aparece en
+la pantalla principal. Cuando no hay solución o se alcanza el límite de
+nodos (no hay animación), el botón aparece de inmediato en la pantalla
+principal.
 
 ## Supuestos de diseño
 

@@ -15,7 +15,25 @@ from core.world import World
 from ui import assets_loader, report_panel, theme, textos
 
 _proceso: BaseProcess | None = None
+_solicitud_resultados: object | None = None
+_terminada: object | None = None
 _contexto = multiprocessing.get_context("spawn")
+
+#: Alto y separación del botón "Ver Resultados Detallados" en el HUD.
+ALTO_BOTON_RESULTADOS: int = 40
+SEPARACION_BOTON_RESULTADOS: int = 210
+
+
+def rect_boton_resultados(
+    alto: int, x0: int, ancho: int
+) -> tuple[int, int, int, int]:
+    """Devuelve (x, y, ancho, alto) del botón de resultados del HUD."""
+    return (
+        x0 + theme.PADDING,
+        alto - SEPARACION_BOTON_RESULTADOS,
+        ancho - 2 * theme.PADDING,
+        ALTO_BOTON_RESULTADOS,
+    )
 
 
 def _superficie(pygame: object, imagen: object) -> object:
@@ -133,7 +151,8 @@ def _dibujar_hud(pygame: object, pantalla: object, alto: int, world: World,
                  estado: Estado, paso: int, total: int, costo: float,
                  velocidad: float, pausado: bool, sprites: dict[str, object],
                  tam: int,
-                 resumen: list[tuple[str, str]] | None = None) -> None:
+                 resumen: list[tuple[str, str]] | None = None,
+                 mostrar_boton: bool = True) -> None:
     """Dibuja el panel lateral: resumen arriba y estado en vivo abajo."""
     x0 = world.columnas * tam
     ancho = theme.ANCHO_HUD_ANIMACION
@@ -255,6 +274,28 @@ def _dibujar_hud(pygame: object, pantalla: object, alto: int, world: World,
             theme.COLOR_PELIGRO, (px, py),
         )
 
+    if total > 0 and paso >= total - 1:
+        rect = pygame.Rect(*rect_boton_resultados(alto_hud, x0, ancho))
+        pygame.draw.rect(
+            pantalla, theme.COLOR_ACCION, rect,
+            border_radius=theme.RADIO_ESQUINA,
+        )
+        pygame.draw.rect(
+            pantalla, theme.COLOR_BORDE, rect,
+            theme.GROSOR_BORDE_FINO,
+            border_radius=theme.RADIO_ESQUINA,
+        )
+        fuente_boton = _fuente(pygame, theme.TAM_FUENTE_TEXTO, True)
+        texto_boton = textos.t("boton_resultados")
+        ancho_texto, alto_texto = fuente_boton.size(texto_boton)
+        _texto(
+            pantalla, fuente_boton, texto_boton, theme.COLOR_TEXTO,
+            (
+                rect.centerx - ancho_texto // 2,
+                rect.centery - alto_texto // 2,
+            ),
+        )
+
     py = alto_hud - 150
     pygame.draw.line(
         pantalla, theme.COLOR_BORDE, (px, py), (x0 + ancho - theme.PADDING, py), 2
@@ -284,11 +325,16 @@ def ejecutar_animacion(
     estados: list[Estado],
     titulo: str,
     resumen: list[tuple[str, str]] | None = None,
+    mostrar_boton: bool = True,
+    solicitud_resultados: object | None = None,
+    terminada: object | None = None,
 ) -> None:
     """Abre la ventana de pygame y reproduce la lista de estados.
 
     `resumen` contiene las filas (etiqueta, valor) del reporte de la
     búsqueda; se dibujan en la parte superior del panel lateral.
+    `solicitud_resultados` y `terminada` son eventos de multiprocessing
+    que avisan al proceso principal.
 
     Función objetivo del proceso hijo: debe ejecutarse con "spawn".
     """
@@ -347,6 +393,18 @@ def ejecutar_animacion(
                         paso = 0
                         acumulador = 0.0
                         pausado = False
+                elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                    if mostrar_boton and total > 0 and paso >= total - 1:
+                        rect = pygame.Rect(
+                            *rect_boton_resultados(
+                                alto, world.columnas * tam,
+                                theme.ANCHO_HUD_ANIMACION,
+                            )
+                        )
+                        if rect.collidepoint(evento.pos):
+                            if solicitud_resultados is not None:
+                                solicitud_resultados.set()
+                            ejecutando = False
 
             if not pausado and paso < total - 1:
                 acumulador += dt
@@ -354,6 +412,9 @@ def ejecutar_animacion(
                 while acumulador >= intervalo and paso < total - 1:
                     paso += 1
                     acumulador -= intervalo
+
+            if terminada is not None and total > 0 and paso >= total - 1:
+                terminada.set()
 
             pantalla.fill(theme.COLOR_FONDO)
             if lista:
@@ -364,10 +425,12 @@ def ejecutar_animacion(
                 _dibujar_hud(
                     pygame, pantalla, alto, world, estado, paso, total,
                     acumulados[paso], velocidad, pausado, sprites, tam,
-                    resumen,
+                    resumen, mostrar_boton,
                 )
             pygame.display.flip()
     finally:
+        if terminada is not None:
+            terminada.set()
         pygame.quit()
 
 
@@ -376,26 +439,51 @@ def lanzar_animacion(
     estados: list[Estado],
     titulo: str,
     resumen: list[tuple[str, str]] | None = None,
+    mostrar_boton: bool = True,
 ) -> None:
     """Lanza la animación en un proceso nuevo con contexto "spawn"."""
-    global _proceso
+    global _proceso, _solicitud_resultados, _terminada
     detener_animacion()
+    _solicitud_resultados = _contexto.Event()
+    _terminada = _contexto.Event()
     _proceso = _contexto.Process(
         target=ejecutar_animacion,
-        args=(ruta_mundo, estados, titulo, resumen),
+        args=(
+            ruta_mundo,
+            estados,
+            titulo,
+            resumen,
+            mostrar_boton,
+            _solicitud_resultados,
+            _terminada,
+        ),
         daemon=True,
     )
     _proceso.start()
 
 
+def solicita_resultados() -> bool:
+    """Indica si el usuario pulsó "Ver Resultados Detallados"."""
+    return _solicitud_resultados is not None and _solicitud_resultados.is_set()
+
+
+def termino() -> bool:
+    """Indica si la animación llegó a la meta o su ventana se cerró."""
+    if _terminada is not None and _terminada.is_set():
+        return True
+    return _proceso is not None and not _proceso.is_alive()
+
+
 def detener_animacion() -> None:
     """Termina el proceso de animación si sigue vivo."""
-    global _proceso
+    global _proceso, _solicitud_resultados, _terminada
     if _proceso is not None:
         if _proceso.is_alive():
             _proceso.terminate()
         _proceso.join(timeout=2)
-        _proceso = None
+    _proceso = None
+    _solicitud_resultados = None
+    _terminada = None
 
 
 def en_ejecucion() -> bool:
