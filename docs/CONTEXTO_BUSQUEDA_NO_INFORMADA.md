@@ -51,11 +51,10 @@ Consecuencias:
 cola = [nodo_raiz]
 mientras cola no vacía:
     n = sacar_del_frente(cola)
-    [modo global] si clave(n.estado) en cerrados: continuar; si no, agregarla
     expandidos += 1
     si es_meta(n.estado): devolver solución
     para cada (accion, estado, costo) en sucesores(n.estado):
-        [modo rama] si crea ciclo en la rama: continuar
+        si crea ciclo en la rama: continuar
         meter Nodo hijo al final de la cola
 devolver sin solución
 ```
@@ -72,16 +71,13 @@ devolver sin solución
 frontera = heap con (0, 0, nodo_raiz)
 mientras frontera no vacía:
     g, _, n = heappop(frontera)
-    [modo global] si estado completo de n en cerrados: continuar; si no, agregarlo
     expandidos += 1
     si es_meta(n.estado): devolver solución
     para cada hijo:
-        [modo rama] si crea ciclo en la rama: continuar
+        si crea ciclo en la rama: continuar
         heappush(frontera, (hijo.g, contador, hijo))
 devolver sin solución
 ```
-
-Un estado repetido que se descarta al extraerlo en modo global **no** cuenta como expandido.
 
 ### 3.3 Profundidad evitando ciclos (d.223, d.253, d.281)
 
@@ -97,12 +93,11 @@ Un estado repetido que se descarta al extraerlo en modo global **no** cuenta com
 pila = [nodo_raiz]
 mientras pila no vacía:
     n = pila.pop()
-    [modo global] si clave(n.estado) en cerrados: continuar; si no, agregarla
     expandidos += 1
     si es_meta(n.estado): devolver solución
     hijos = []
     para cada (accion, estado, costo) en sucesores(n.estado):
-        [modo rama] si crea ciclo en la rama: continuar
+        si crea ciclo en la rama: continuar
         hijos.append(Nodo hijo)
     pila.extend(reversed(hijos))
 devolver sin solución
@@ -124,9 +119,7 @@ Resultado:
 - Se permitirían hasta 30 pasos de vaivén sin sentido.
 - Eso multiplica nodos y tiempo, y viola "evite ciclos".
 
-### 4.3 Solución: dos claves de ciclo (en `algorithms/base.py`)
-
-**Clave completa:** el `Estado` tal cual.
+### 4.3 Solución: clave de ciclo relajada
 
 **Clave relajada:** `(pos, fertilizante, cultivos_pendientes, fase_avioneta)`, donde la fase sale de `combustible`:
 
@@ -140,33 +133,25 @@ Por qué la clave relajada es segura: dentro de una misma fase, el combustible n
 
 La clave relajada sigue permitiendo los regresos legítimos del enunciado, porque abordar la avioneta, recargar y tratar un cultivo cambian la fase, el fertilizante o los cultivos pendientes.
 
-### 4.4 Parámetro `modo_ciclos`
+### 4.4 Detección de ciclos por rama
 
-| Algoritmo | Valor por defecto | Clave usada |
-|---|---|---|
-| BFS | `"rama"` | relajada (también en `"global"`) |
-| UCS | `"rama"` | relajada en `"rama"`; **completa** en `"global"` |
-| DFS | `"rama"` | relajada |
+- Se revisan los ancestros del nodo (incluido el padre), tal como lo define el profesor.
+- No existe un conjunto compartido de estados cerrados ni un parámetro para elegir el modo de ciclos.
+- La clave relajada se usa en los tres algoritmos; es segura porque dentro de una misma fase el combustible nunca sube.
+- Se descartó la alternativa de llevar un conjunto de estados cerrados para ser fiel a la definición de evitar ciclos de las diapositivas. En `Prueba1` daba el mismo costo y la misma profundidad de solución; solo reducía los nodos expandidos.
 
-- **`"rama"`:** se revisan los ancestros del nodo (incluido el padre), tal como lo define el profesor.
-- **`"global"`:** conjunto de estados ya expandidos (cerrados). Se marca el estado **al extraerlo**.
-- En UCS con `"global"` hay que usar la clave **completa**. Con la relajada se podría cerrar un estado con menos combustible pero menor `g` antes de ver uno con más combustible y mayor `g`, y perder la optimalidad.
-- En UCS con `"rama"` sí se puede usar la relajada (argumento de dominancia de 4.3).
-- Para BFS y DFS la clave relajada es segura en ambos modos, porque el combustible solo afecta el costo y no lo alcanzable.
-- Un valor de `modo_ciclos` inválido lanza `ValueError`.
-
-**Por qué `"rama"` es el valor por defecto en los tres:** la estimación inicial era que `"rama"` sería inviable en BFS y UCS por crecimiento exponencial. Sin embargo, medido sobre `Prueba1` terminó en menos de 0.25 s, y el enunciado permite devolverse (subir a la avioneta, recargar o tratar un cultivo), algo que la clave relajada ya cubre. Por eso `"rama"` es el valor por defecto. `"global"` queda como alternativa con menos nodos expandidos.
+**Limitación conocida:** en mundos muy abiertos, la búsqueda por rama puede crecer de forma exponencial y alcanzar `limite_nodos`. Se observó con BFS y con DFS en mundos abiertos de prueba.
 
 ### 4.5 Límite de seguridad
 
-Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para acotar búsquedas costosas, por ejemplo en cuadrículas abiertas donde `"rama"` explora muchos caminos simples.
+Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para acotar búsquedas costosas, por ejemplo en cuadrículas abiertas donde la búsqueda por rama explora muchos caminos simples.
 
 ## 5. Interfaz de los algoritmos
 
 ```python
-busqueda_amplitud(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
-busqueda_costo_uniforme(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
-busqueda_profundidad(problema, modo_ciclos="rama", limite_nodos=None) -> Resultado
+busqueda_amplitud(problema, limite_nodos=None) -> Resultado
+busqueda_costo_uniforme(problema, limite_nodos=None) -> Resultado
+busqueda_profundidad(problema, limite_nodos=None) -> Resultado
 ```
 
 ### `Resultado` (en `algorithms/base.py`)
@@ -187,7 +172,7 @@ busqueda_profundidad(problema, modo_ciclos="rama", limite_nodos=None) -> Resulta
 **Confirmado por el profesor:** "profundidad del árbol" = `profundidad_maxima`. Se guardan ambas (`profundidad` y `profundidad_maxima`) por si la UI necesita la otra.
 
 Helpers en `base.py`:
-- `clave_completa(estado)` y `clave_relajada(estado)`.
+- `clave_relajada(estado)`.
 - `crea_ciclo_en_rama(nodo_padre, estado_hijo, clave)`: recorre `nodo.padre` hacia arriba, incluyendo el padre, comparando claves.
 - Un helper para medir el tiempo y construir el `Resultado` (con éxito y sin él).
 
@@ -196,35 +181,33 @@ Helpers en `base.py`:
 | Tema | Antes | Ahora |
 |---|---|---|
 | Nodo expandido | El que genera sucesores | El que se extrae y se verifica, **incluye el nodo meta** |
-| DFS evitando ciclos | `visitados` global | Revisión de ancestros (por rama) |
-| Clave de ciclo | `Estado` completo siempre | Relajada (sin combustible exacto) salvo UCS global |
-| `modo_ciclos` por defecto | BFS y UCS en `"global"`, DFS en `"rama"` | `"rama"` en BFS, UCS y DFS |
+| DFS evitando ciclos | `visitados` compartido | Revisión de ancestros (por rama) |
+| Clave de ciclo | `Estado` completo siempre | Relajada (sin combustible exacto) en los tres algoritmos |
+| Modo de ciclos | Existía la alternativa de cerrados | Solo por rama, sin parámetro |
 | `Resultado` | Sin `exito`, `nodos_generados`, `profundidad_maxima` | Se agregan |
 
 ## 7. Pruebas esperadas (`tests/test_algorithms.py`)
 
-Los mundos de prueba se arman escribiendo una matriz 10x10 a un archivo temporal (`tmp_path`) y cargándola con `World.desde_archivo`.
+Los mundos de prueba se arman escribiendo una matriz 10x10 a un archivo temporal (`tmp_path`) y cargándola con `World.desde_archivo`. Todas las llamadas usan `limite_nodos=200_000` para que ninguna prueba pueda colgarse; las pruebas de solución afirman `exito == True` y `limite_alcanzado == False`.
 
 1. **Sin cultivos:** meta en la raíz. Camino vacío, `costo == 0`, `nodos_expandidos == 1`.
 2. **Un cultivo cerca del depósito:** los tres algoritmos devuelven solución válida.
 3. **Validez de la solución:** reproducir `camino` paso a paso con `Problema.sucesores` desde el estado inicial. El estado final debe cumplir `es_meta`, y la suma de costos debe ser igual a `Resultado.costo`.
-4. **Optimalidad:** en un mundo con varias rutas, `costo(UCS) <= costo(BFS)` y `costo(UCS) <= costo(DFS)`.
-5. **BFS no es óptimo en costo:** construir, si es posible, un mundo donde un desvío para abordar la avioneta abarate el recorrido, de modo que `costo(BFS) > costo(UCS)`. Si no se logra, documentarlo en la prueba.
+4. **Optimalidad:** en un mundo de pasillos estrechos con varias rutas, `costo(UCS) <= costo(BFS)` y `costo(UCS) <= costo(DFS)`.
+5. **BFS no es óptimo en costo:** en un mundo de pasillos donde el desvío por la avioneta abarata el recorrido, `costo(BFS) > costo(UCS)`.
 6. **Sin solución:** cultivo encerrado por muros, o depósito inalcanzable. Devuelve `exito == False`, camino vacío, `costo is None`, sin lanzar excepción.
 7. **Sin oscilación:** en ninguna solución aparece `pos[i] == pos[i+2]` salvo que entre `i` y `i+2` haya cambiado el fertilizante, los cultivos pendientes o la fase de la avioneta.
 8. **Meta al extraer:** el nodo meta cuenta como expandido, y `nodos_expandidos >= len(camino) + 1` en BFS.
 9. **DFS apila en orden inverso:** en un mundo abierto, la primera expansión de DFS sigue "arriba" cuando es posible.
-10. **`modo_ciclos` inválido** lanza `ValueError`.
-11. **`limite_nodos`** corta la búsqueda con `exito == False` y `limite_alcanzado == True`.
-12. **UCS con `"global"` y con `"rama"`** dan el mismo costo en mundos pequeños.
+10. **`limite_nodos`** corta la búsqueda con `exito == False` y `limite_alcanzado == True`.
 
 ## 8. Verificación sobre `Prueba1.txt`
 
 Un script de consola (`scripts/comparar_no_informada.py`) debe correr BFS, UCS y DFS sobre `worlds/Prueba1.txt` y mostrar una tabla con:
 
-`algoritmo | modo_ciclos | exito | nodos_expandidos | nodos_generados | profundidad | profundidad_maxima | tiempo | costo`
+`algoritmo | exito | nodos_expandidos | nodos_generados | profundidad | profundidad_maxima | tiempo | costo`
 
-Las tres primeras filas usan los valores por defecto (`"rama"`). Se incluyen además las filas `"global"` de BFS y UCS como comparación, ya que expanden menos nodos.
+Los tres algoritmos evitan ciclos solo por rama; no hay filas ni columnas de modo de ciclos.
 
 ## 9. Supuestos que hay que mencionar en el informe
 
@@ -238,6 +221,6 @@ Las tres primeras filas usan los valores por defecto (`"rama"`). Se incluyen ade
 
 4. Test de meta al extraer; el nodo meta cuenta como expandido y no genera hijos.
 5. Desempate en UCS por orden de creación.
-6. `modo_ciclos` por defecto `"rama"` en BFS, UCS y DFS.
+6. Ciclos solo por rama (revisión de ancestros), a la espera de confirmación con el profesor.
 7. Clave de ciclo relajada para evitar la oscilación en la avioneta.
 8. Los supuestos 3 a 6 del core (codificación de `combustible`, tratamiento automático y obligatorio, casillas transitables, orden de operadores), ya documentados en el README.

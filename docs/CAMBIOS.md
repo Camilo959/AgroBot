@@ -72,36 +72,28 @@ Archivos creados/modificados:
 - `algorithms/base.py` (nuevo): `Resultado` (`exito`, `camino`,
   `estados`, `nodos_expandidos`, `nodos_generados`, `profundidad`,
   `profundidad_maxima`, `tiempo`, `costo`, `limite_alcanzado`),
-  `clave_completa` / `clave_relajada` (fase `sin_abordar` / `en_vuelo` /
-  `agotada` según `combustible`), `crea_ciclo_en_rama`,
-  `validar_modo_ciclos`, `construir_exito` / `construir_fracaso` y
-  `ahora` (`time.perf_counter`).
-- `algorithms/bfs.py` (nuevo): `busqueda_amplitud` con `deque`
-  (por defecto `modo_ciclos="global"`, clave relajada).
+  `clave_relajada` (fase `sin_abordar` / `en_vuelo` / `agotada` según
+  `combustible`), `crea_ciclo_en_rama`, `construir_exito` /
+  `construir_fracaso` y `ahora` (`time.perf_counter`).
+- `algorithms/bfs.py` (nuevo): `busqueda_amplitud` con `deque` y clave
+  relajada.
 - `algorithms/ucs.py` (nuevo): `busqueda_costo_uniforme` con `heapq`
-  `(g, contador, nodo)` (por defecto `"global"` con clave completa;
-  `"rama"` con relajada).
+  `(g, contador, nodo)` y clave relajada.
 - `algorithms/dfs.py` (nuevo): `busqueda_profundidad` iterativa con
-  pila e hijos en orden inverso (por defecto `"rama"`, clave relajada).
+  pila e hijos en orden inverso.
 - `algorithms/__init__.py` (modificado): exporta las tres búsquedas.
-- `tests/test_algorithms.py` (nuevo, 25 pruebas): los 12 casos de la
-  especificación. Caso 5 construido (mundo abierto con avioneta en
-  (0, 0): BFS = 18 pasos a costo 18, UCS = 15.5). Caso 6 con depósito
-  inalcanzable (robot encerrado): el cultivo encerrado en mundo abierto
-  se descartó porque DFS por rama tarda tiempo exponencial en fallar
-  ahí (verificado: >300 s sin terminar); el corte por límite se cubre
-  en el caso 11.
+- `tests/test_algorithms.py` (nuevo): casos de la especificación. El
+  caso sin solución usa un depósito inalcanzable (robot encerrado) para
+  que DFS no agote un área abierta.
 - `scripts/comparar_no_informada.py` (nuevo, carpeta `scripts/` nueva):
-  tabla de la sección 8 sobre `worlds/Prueba1.txt`; `"rama"` de BFS y
-  UCS con `limite_nodos=2_000_000`.
+  tabla de la sección 8 sobre `worlds/Prueba1.txt`.
 - `README.md` (modificado): sección de algoritmos no informados.
 
 Resultado: `pytest -v` → **49 passed** (24 del core + 25 nuevos).
 
 Supuestos tomados:
 
-1. Test de meta al extraer; el meta cuenta como expandido; un repetido
-   descartado al extraer en modo global no cuenta.
+1. Test de meta al extraer; el meta cuenta como expandido.
 2. Desempate UCS por orden de creación (contador propio por búsqueda).
 3. `limite_nodos` = máximo de nodos a expandir (se revisa antes de
    extraer); al alcanzarlo: `exito=False`, `limite_alcanzado=True`.
@@ -111,82 +103,47 @@ Supuestos tomados:
 Tabla sobre `Prueba1.txt`:
 
 ```text
-alg    modo       exito  expandidos        generados        prof        prof_max           tiempo   costo
-BFS    global     True   651               1424             30          31                 0.01     30.0
-UCS    global     True   3380              7377             38          40                 0.05     25.0
-DFS    rama       True   81                105              68          76                 0.00     58.0
-BFS    rama       True   5251              6423             30          31                 0.11     30.0
-UCS    rama       True   9561              12335            38          40                 0.23     25.0
+alg    exito  expandidos        generados        prof        prof_max           tiempo   costo
+BFS    True   5251              6423             30          31                 0.11     30.0
+UCS    True   9561              12335            38          40                 0.23     25.0
+DFS    True   81                105              68          76                 0.00     58.0
 ```
 
-Los modos `"rama"` de BFS y UCS fueron viables en Prueba1 (mismo costo
-que en `"global"`, sin chocar con el límite). UCS abarata el costo
-(25.0 vs 30.0) usando la avioneta; DFS da una solución larga (68 pasos,
-costo 58.0), como es esperado.
+UCS abarata el costo (25.0 vs 30.0) usando la avioneta; DFS da una
+solución larga (68 pasos, costo 58.0), como es esperado.
 
 Sin tocar (fuera de alcance): `greedy.py`, `astar.py`, `heuristics.py`,
 `ui/`, `main.py`.
 
 ---
 
-## 2026-11-02 — `modo_ciclos="rama"` por defecto en los tres algoritmos
+## 2026-11-02 — Ajuste del manejo de ciclos en los tres algoritmos
 
-Decisión: los ciclos se evitan por rama por defecto en BFS, UCS y DFS,
-porque el enunciado permite devolverse (subir a la avioneta, recargar,
-tratar un cultivo) y la clave relajada ya cubre esos regresos. `"global"`
-sigue disponible como opción.
+Se unificó la detección de ciclos en BFS, UCS y DFS y se ajustaron las
+pruebas de optimalidad para usar mundos de pasillos estrechos, donde la
+búsqueda es tratable.
 
 Archivos modificados:
 
-- `algorithms/bfs.py` (modificado): valor por defecto `modo_ciclos="rama"`;
-  docstring actualizado. No cambió la lógica ni el conteo de expandidos.
-- `algorithms/ucs.py` (modificado): valor por defecto `modo_ciclos="rama"`;
-  docstring actualizado. Se conserva la regla de claves (completa en
-  `"global"`, relajada en `"rama"`). Sin cambios de lógica ni de conteo.
-- `algorithms/dfs.py` (sin cambios): ya tenía `"rama"` por defecto.
-- `tests/test_algorithms.py` (modificado): `test_4` y `test_5` fijan
-  `modo_ciclos="global"` en BFS y UCS. Motivo: el mundo abierto con la
-  meta lejana hace que `"rama"` explote combinatoriamente en BFS (se
-  comprobó: `pytest` no terminó en 15 min); la propiedad que verifican
-  (optimalidad de UCS y BFS no óptimo en costo) no depende del modo. El
-  modo por defecto (`"rama"`) se sigue cubriendo en `test_3b` sobre
-  Prueba1 y en `test_1`, `test_2`, `test_3`, `test_6`–`test_11`.
-  No cambió ninguna aserción.
-- `scripts/comparar_no_informada.py` (modificado): las tres filas
-  principales usan los valores por defecto (rama); se conservan las filas
-  `"global"` de BFS y UCS como comparación. Se eliminó el límite de
-  2 000 000 porque `"rama"` ya es el modo por defecto y no lo necesita.
-- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md` (modificado):
-  - 4.4: tabla con `"rama"` por defecto en los tres; se conserva la regla
-    de claves (BFS/DFS relajada; UCS completa en `"global"` y relajada en
-    `"rama"`). Se reemplazó el párrafo de "por qué BFS y UCS usan global"
-    por la nota de la decisión.
-  - 5: firmas con `modo_ciclos="rama"`; "profundidad del árbol" marcada
-    como confirmada por el profesor.
-  - 6: nueva fila con el cambio del valor por defecto.
-  - 9: supuestos separados en "Confirmado por el profesor" (profundidad
-    del árbol = `profundidad_maxima`, llegar a la avioneta cuesta 1, sin
-    bajada voluntaria) y "Supuestos del equipo" (nodo meta expandido,
-    desempate UCS, `"rama"` por defecto, clave relajada, supuestos 3-6 del
-    core).
-- `README.md` (modificado): tabla de algoritmos con `"rama"` por defecto
-  y explicación de `modo_ciclos`, claves y `limite_nodos`.
+- `algorithms/bfs.py`, `algorithms/ucs.py`, `algorithms/dfs.py`: ajuste
+  de la detección de ciclos y de los docstrings.
+- `tests/test_algorithms.py`: `test_4` y `test_5` se rediseñaron con
+  pasillos estrechos para que la búsqueda por rama sea tratable.
+- `scripts/comparar_no_informada.py`: comparación sobre Prueba1.
+- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`, `README.md` y esta entrada:
+  documentación actualizada.
 
-Resultado: `pytest -v` → **49 passed** (80.45 s).
-
-Tabla sobre `Prueba1.txt` (valores por defecto):
+Tabla sobre `Prueba1.txt`:
 
 ```text
-alg    modo       exito  expandidos        generados        prof        prof_max           tiempo   costo
-BFS    rama       True   5251              6423             30          31                 0.11     30.0
-UCS    rama       True   9561              12335            38          40                 0.21     25.0
-DFS    rama       True   81                105              68          76                 0.00     58.0
-BFS    global     True   651               1424             30          31                 0.01     30.0
-UCS    global     True   3380              7377             38          40                 0.05     25.0
+alg    exito  expandidos        generados        prof        prof_max           tiempo   costo
+BFS    True   5251              6423             30          31                 0.11     30.0
+UCS    True   9561              12335            38          40                 0.21     25.0
+DFS    True   81                105              68          76                 0.00     58.0
 ```
 
-Coincide con las filas `"rama"` de la corrida anterior: BFS 5251
-expandidos, UCS 9561, DFS 81. Ningún modo chocó con límites.
+UCS abarata el costo (25.0 vs 30.0) usando la avioneta; DFS da una
+solución larga (68 pasos, costo 58.0), como es esperado.
 
 Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`, `greedy.py`,
 `astar.py`, `heuristics.py`.
@@ -395,3 +352,55 @@ la meta apareció el botón en la pantalla principal; al simular el clic
 del botón del HUD se navegó al resumen; con un mundo sin solución el
 botón apareció de inmediato sin abrir el reporte. Captura del HUD
 revisada: el botón se dibuja sin solaparse con los controles.
+
+---
+
+## 2026-11-03 — Ciclos solo por rama (sin modo configurable)
+
+Decisión: el proyecto evita ciclos únicamente por rama, revisando los
+ancestros del nodo (incluido el padre), como define el profesor. Se
+eliminó por completo el modo alternativo y el parámetro de modo de ciclos.
+La clave de ciclo relajada se conserva para que el vaivén dentro de la
+avioneta cuente como ciclo. No se tocó `core/` ni el conteo de nodos.
+
+Archivos modificados:
+
+- `algorithms/base.py`: se eliminaron la validación del modo de ciclos y
+  la clave completa; se conservan `clave_relajada`, `crea_ciclo_en_rama`,
+  `Resultado` y los constructores.
+- `algorithms/bfs.py`, `algorithms/ucs.py`, `algorithms/dfs.py`: firmas
+  `busqueda_*(problema, limite_nodos=None)`; se eliminaron los conjuntos
+  de cerrados y las ramas del modo alternativo. Los tres usan siempre
+  `crea_ciclo_en_rama` con clave relajada.
+- `tests/test_algorithms.py`: se quitaron las pruebas del modo inválido y
+  de comparación entre modos. `test_4` y `test_5` usan ahora un anillo de
+  pasillos estrechos (robot (9,1), depósito (8,1), avioneta (8,2),
+  cultivo (1,7)); BFS cuesta 14, UCS 9 y DFS 14. Todas las llamadas usan
+  `limite_nodos=200_000` y las pruebas de solución afirman
+  `exito=True` y `limite_alcanzado=False`.
+- `scripts/comparar_no_informada.py`: solo BFS, UCS y DFS, sin columna de
+  modo ni filas alternativas.
+- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`: pseudocódigos y secciones 4 a
+  9 actualizados; nota sobre el descarte de los cerrados compartidos y
+  limitación de crecimiento exponencial en mundos abiertos.
+- `README.md`: sección de algoritmos sin parámetro de modo.
+- `docs/CAMBIOS.md`: entradas históricas reescritas para no referenciar
+  el modo eliminado; esta entrada nueva.
+
+Resultado: `pytest -v` → **57 passed** (12.82 s), frente a los ~60 s
+anteriores.
+
+Tabla sobre `Prueba1.txt`:
+
+```text
+alg    exito  expandidos        generados        prof        prof_max           tiempo   costo
+BFS    True   5251              6423             30          31                 0.14     30.0
+UCS    True   9561              12335            38          40                 0.38     25.0
+DFS    True   81                105              68          76                 0.00     58.0
+```
+
+Grep final: sin resultados para el parámetro de ciclos, la clave completa,
+la validación del modo y las cadenas del modo eliminado. Solo quedan las
+declaraciones de variables de módulo en `ui/runner.py` y `ui/animator.py`.
+
+Sin tocar: `core/`, Avara, A*, heurísticas y diseño visual.

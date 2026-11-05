@@ -1,7 +1,8 @@
-"""Pruebas de BFS, UCS y DFS (12 casos de la especificación).
+"""Pruebas de BFS, UCS y DFS (casos de la especificación).
 
 Los mundos se arman como matrices 10x10 en archivos temporales (`tmp_path`)
-y se cargan con `World.desde_archivo`.
+y se cargan con `World.desde_archivo`. Todos los algoritmos se ejecutan con
+un límite de nodos para que ninguna prueba pueda colgarse.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from core.problem import Problema
 from core.world import World
 
 RUTA_PRUEBA1 = Path(__file__).resolve().parent.parent / "worlds" / "Prueba1.txt"
+LIMITE_PRUEBAS = 200_000
 
 TODOS = [busqueda_amplitud, busqueda_costo_uniforme, busqueda_profundidad]
 
@@ -57,6 +59,41 @@ def mundo_cerca(tmp_path: Path) -> Problema:
     )
 
 
+def mundo_pasillos(tmp_path: Path) -> Problema:
+    """Anillo de pasillos estrechos con dos rutas entre robot y cultivo.
+
+    Robot (9, 1), depósito (8, 1), avioneta (8, 2), cultivo (1, 7).
+    Ruta directa: 1 + 13 = 14 pasos, costo 14.
+    Ruta con avioneta: 1 + 15 = 16 pasos, costo 1 + 14*0.5 + 1 = 9.
+    BFS elige la ruta de menos pasos; UCS elige la de menor costo.
+    """
+    abiertos: set[tuple[int, int]] = set()
+    for columna in range(1, 9):
+        abiertos.add((1, columna))
+        abiertos.add((8, columna))
+    for fila in range(1, 9):
+        abiertos.add((fila, 1))
+        abiertos.add((fila, 8))
+
+    robot = (9, 1)
+    deposito = (8, 1)
+    avioneta = (8, 2)
+    cultivo = (1, 7)
+    abiertos.update({robot, deposito, avioneta, cultivo})
+
+    muros = tuple(
+        (fila, columna)
+        for fila in range(10)
+        for columna in range(10)
+        if (fila, columna) not in abiertos
+    )
+    return escribir_mundo(
+        tmp_path, "pasillos.txt",
+        robot=robot, deposito=deposito, avioneta=avioneta,
+        cultivos=(cultivo,), muros=muros,
+    )
+
+
 def validar_reproduccion(problema: Problema, resultado) -> None:
     """Reproduce el camino con `sucesores` y verifica meta y costo."""
     assert resultado.exito
@@ -78,8 +115,9 @@ def test_1_sin_cultivos_meta_en_raiz(tmp_path):
             tmp_path, f"vacio_{buscar.__name__}.txt",
             robot=(5, 5), deposito=(0, 0), avioneta=(9, 9),
         )
-        r = buscar(p)
+        r = buscar(p, limite_nodos=LIMITE_PRUEBAS)
         assert r.exito is True
+        assert r.limite_alcanzado is False
         assert r.camino == []
         assert r.costo == 0
         assert r.nodos_expandidos == 1
@@ -87,74 +125,58 @@ def test_1_sin_cultivos_meta_en_raiz(tmp_path):
 
 @pytest.mark.parametrize("buscar", TODOS)
 def test_2_un_cultivo_cerca_todos_resuelven(tmp_path, buscar):
-    r = buscar(mundo_cerca(tmp_path))
+    r = buscar(mundo_cerca(tmp_path), limite_nodos=LIMITE_PRUEBAS)
     assert r.exito is True
+    assert r.limite_alcanzado is False
     assert r.costo is not None
 
 
 @pytest.mark.parametrize("buscar", TODOS)
 def test_3_solucion_valida_reproducible(tmp_path, buscar):
     p = mundo_cerca(tmp_path)
-    validar_reproduccion(p, buscar(p))
+    r = buscar(p, limite_nodos=LIMITE_PRUEBAS)
+    assert r.limite_alcanzado is False
+    validar_reproduccion(p, r)
 
 
 def test_3b_solucion_valida_en_prueba1():
     p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
-    validar_reproduccion(p, busqueda_amplitud(p))
-    validar_reproduccion(p, busqueda_costo_uniforme(p))
-
-
-def mundo_avioneta(tmp_path: Path) -> Problema:
-    """Cuadrícula abierta donde el desvío por la avioneta abarata el viaje.
-
-    Robot (9, 0), depósito (9, 1), cultivo (0, 9), avioneta (0, 0).
-    Directo: 1 + 17 = 18 pasos a costo 1 → 18. Con avioneta: 20 pasos
-    pero 1 + 10 + 9*0.5 = 15.5. Ningún camino de 18 pasos puede pasar por
-    la avioneta (necesita mínimo 1 + 10 + 9 = 20), así que BFS queda en 18.
-    """
-    return escribir_mundo(
-        tmp_path, "avioneta.txt",
-        robot=(9, 0), deposito=(9, 1), avioneta=(0, 0),
-        cultivos=((0, 9),),
-    )
+    bfs = busqueda_amplitud(p, limite_nodos=LIMITE_PRUEBAS)
+    ucs = busqueda_costo_uniforme(p, limite_nodos=LIMITE_PRUEBAS)
+    assert bfs.limite_alcanzado is False
+    assert ucs.limite_alcanzado is False
+    validar_reproduccion(p, bfs)
+    validar_reproduccion(p, ucs)
 
 
 def test_4_optimalidad_ucs(tmp_path):
-    """La optimalidad de UCS no depende del modo de ciclos.
-
-    Se fija "global" en BFS y UCS porque este mundo abierto con la meta
-    lejana hace que el modo "rama" explote en BFS (complejidad de caminos
-    simples); el modo por defecto se cubre en `test_3b` sobre Prueba1.
-    """
-    p = mundo_avioneta(tmp_path)
-    bfs = busqueda_amplitud(p, modo_ciclos="global")
-    ucs = busqueda_costo_uniforme(p, modo_ciclos="global")
-    dfs = busqueda_profundidad(p)
-    assert bfs.exito and ucs.exito and dfs.exito
+    """UCS no es más caro que BFS ni que DFS en pasillos estrechos."""
+    p = mundo_pasillos(tmp_path)
+    bfs = busqueda_amplitud(p, limite_nodos=LIMITE_PRUEBAS)
+    ucs = busqueda_costo_uniforme(p, limite_nodos=LIMITE_PRUEBAS)
+    dfs = busqueda_profundidad(p, limite_nodos=LIMITE_PRUEBAS)
+    for r in (bfs, ucs, dfs):
+        assert r.exito is True
+        assert r.limite_alcanzado is False
     assert ucs.costo <= bfs.costo
     assert ucs.costo <= dfs.costo
 
 
 def test_5_bfs_mas_caro_que_ucs_por_avioneta(tmp_path):
-    """BFS minimiza pasos, no costo; UCS sí abarata con la avioneta."""
-    p = mundo_avioneta(tmp_path)
-    bfs = busqueda_amplitud(p, modo_ciclos="global")
-    ucs = busqueda_costo_uniforme(p, modo_ciclos="global")
-    assert bfs.exito and ucs.exito
-    assert bfs.costo == 18
-    assert ucs.costo == 15.5
+    """BFS minimiza pasos, no costo; UCS abarata con la avioneta."""
+    p = mundo_pasillos(tmp_path)
+    bfs = busqueda_amplitud(p, limite_nodos=LIMITE_PRUEBAS)
+    ucs = busqueda_costo_uniforme(p, limite_nodos=LIMITE_PRUEBAS)
+    assert bfs.exito is True and ucs.exito is True
+    assert bfs.limite_alcanzado is False
+    assert ucs.limite_alcanzado is False
+    assert bfs.costo == 14.0
+    assert ucs.costo == 9.0
     assert bfs.costo > ucs.costo
 
 
 def mundo_sin_solucion(tmp_path: Path) -> Problema:
-    """Depósito inalcanzable: el robot queda encerrado en (1, 1).
-
-    Se usa el depósito inalcanzable (en vez del cultivo encerrado en un
-    mundo abierto) porque DFS por rama, sin cerrados globales, tendría que
-    agotar todos los caminos simples del área abierta antes de fallar, lo
-    cual es exponencial. El corte por límite para esos casos se prueba en
-    el caso 11 y en el script de verificación.
-    """
+    """Depósito inalcanzable: el robot queda encerrado en (1, 1)."""
     return escribir_mundo(
         tmp_path, "cerrado.txt",
         robot=(1, 1), deposito=(5, 5), avioneta=(9, 9),
@@ -165,7 +187,7 @@ def mundo_sin_solucion(tmp_path: Path) -> Problema:
 
 @pytest.mark.parametrize("buscar", TODOS)
 def test_6_sin_solucion(tmp_path, buscar):
-    r = buscar(mundo_sin_solucion(tmp_path))
+    r = buscar(mundo_sin_solucion(tmp_path), limite_nodos=LIMITE_PRUEBAS)
     assert r.exito is False
     assert r.camino == []
     assert r.costo is None
@@ -178,8 +200,9 @@ def fases(estado) -> str:
 
 @pytest.mark.parametrize("buscar", TODOS)
 def test_7_sin_oscilacion(tmp_path, buscar):
-    r = buscar(mundo_cerca(tmp_path))
+    r = buscar(mundo_cerca(tmp_path), limite_nodos=LIMITE_PRUEBAS)
     assert r.exito
+    assert r.limite_alcanzado is False
     for i in range(len(r.estados) - 2):
         if r.estados[i].pos == r.estados[i + 2].pos:
             a, b = r.estados[i], r.estados[i + 2]
@@ -191,39 +214,27 @@ def test_7_sin_oscilacion(tmp_path, buscar):
 
 
 def test_8_meta_al_extraer_cuenta_como_expandido(tmp_path):
-    r = busqueda_amplitud(mundo_cerca(tmp_path))
+    r = busqueda_amplitud(
+        mundo_cerca(tmp_path), limite_nodos=LIMITE_PRUEBAS
+    )
     assert r.exito
+    assert r.limite_alcanzado is False
     # Raíz + un expandido por cada paso del camino, como mínimo.
     assert r.nodos_expandidos >= len(r.camino) + 1
 
 
 def test_9_dfs_apila_en_orden_inverso(tmp_path):
-    r = busqueda_profundidad(mundo_cerca(tmp_path))
+    r = busqueda_profundidad(
+        mundo_cerca(tmp_path), limite_nodos=LIMITE_PRUEBAS
+    )
     assert r.exito
+    assert r.limite_alcanzado is False
     # Desde (5, 5) todo está libre: el primer operador (arriba) sale primero.
     assert r.camino[0] == "arriba"
 
 
 @pytest.mark.parametrize("buscar", TODOS)
-def test_10_modo_ciclos_invalido(buscar):
-    p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
-    with pytest.raises(ValueError):
-        buscar(p, modo_ciclos="globalmente")
-
-
-@pytest.mark.parametrize("buscar", TODOS)
-def test_11_limite_nodos(tmp_path, buscar):
+def test_10_limite_nodos(tmp_path, buscar):
     r = buscar(mundo_cerca(tmp_path), limite_nodos=3)
     assert r.exito is False
     assert r.limite_alcanzado is True
-
-
-def test_12_ucs_global_y_rama_mismo_costo(tmp_path):
-    for nombre, mundo in (
-        ("cerca", mundo_cerca(tmp_path)),
-        ("avioneta", mundo_avioneta(tmp_path)),
-    ):
-        g = busqueda_costo_uniforme(mundo, modo_ciclos="global")
-        r = busqueda_costo_uniforme(mundo, modo_ciclos="rama")
-        assert g.exito and r.exito, nombre
-        assert g.costo == r.costo, nombre

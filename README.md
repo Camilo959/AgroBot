@@ -142,23 +142,23 @@ Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`
 
 ## Algoritmos de búsqueda no informada
 
-| Algoritmo | Función | Estructura | Defecto `modo_ciclos` |
-|---|---|---|---|
-| Amplitud (BFS) | `busqueda_amplitud` | cola FIFO (`deque`) | `"rama"` |
-| Costo uniforme (UCS) | `busqueda_costo_uniforme` | `heapq` por `g` | `"rama"` |
-| Profundidad (DFS) | `busqueda_profundidad` | pila (iterativo) | `"rama"` |
+| Algoritmo | Función | Estructura |
+|---|---|---|
+| Amplitud (BFS) | `busqueda_amplitud` | cola FIFO (`deque`) |
+| Costo uniforme (UCS) | `busqueda_costo_uniforme` | `heapq` por `g` |
+| Profundidad (DFS) | `busqueda_profundidad` | pila (iterativo) |
 
 - **Test de meta al extraer** el nodo (nunca al generar); el meta cuenta
   como expandido.
-- **`modo_ciclos`** (por defecto `"rama"` en los tres): `"rama"` revisa
-  solo los ancestros del camino actual y permite los regresos que autoriza
-  el enunciado; `"global"` marca estados ya expandidos (cerrados) y suele
-  expandir menos nodos. BFS y DFS usan la clave relajada (sin combustible
-  exacto: evita la oscilación en la avioneta) en ambos modos; UCS usa la
-  clave completa en `"global"` (preserva la optimalidad) y la relajada en
-  `"rama"`. Valor inválido → `ValueError`.
+- **Ciclos solo por rama:** se revisan los ancestros del camino actual
+  (incluido el padre), como define el profesor. No hay conjunto compartido
+  de estados cerrados ni parámetro de modo.
+- **Clave relajada** (sin el combustible exacto): evita que el vaivén
+  `A → B → A` dentro de la avioneta cuente como ciclo, y permite los
+  regresos que autoriza el enunciado.
 - **`limite_nodos`**: máximo de nodos a expandir; al alcanzarlo devuelve
-  `exito=False` con `limite_alcanzado=True`. Útil para probar `"rama"`
-  sin colgar la terminal.
+  `exito=False` con `limite_alcanzado=True`.
+- **Limitación:** en mundos muy abiertos la búsqueda por rama puede crecer
+  exponencialmente y alcanzar el límite de nodos.
 - Comparación sobre `Prueba1.txt`:
   `python scripts/comparar_no_informada.py`.

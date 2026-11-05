@@ -1,16 +1,17 @@
 """Base común de los algoritmos de búsqueda no informada (AgroBot).
 
-Contiene el `Resultado`, las claves de ciclo (completa y relajada), la
-detección de ciclos en rama y los constructores de `Resultado` con y sin
-solución.
+Contiene el `Resultado`, la clave de ciclo relajada, la detección de
+ciclos en rama y los constructores de `Resultado` con y sin solución.
 
 Convenciones (ver `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`):
     - El test de meta se hace al extraer el nodo; el nodo meta cuenta
       como expandido.
-    - Clave completa: el `Estado` tal cual. Clave relajada:
-      `(pos, fertilizante, cultivos_pendientes, fase_avioneta)`, donde la
-      fase se deriva de `combustible` (-1: sin abordar, 1..30: en vuelo,
-      0: agotada). La relajada evita la oscilación en la avioneta.
+    - Los ciclos se detectan solo por rama: se comparan los ancestros del
+      nodo, incluido el padre.
+    - Clave relajada: `(pos, fertilizante, cultivos_pendientes,
+      fase_avioneta)`, donde la fase se deriva de `combustible` (-1: sin
+      abordar, 1..30: en vuelo, 0: agotada). La relajada evita la
+      oscilación en la avioneta.
 """
 
 from __future__ import annotations
@@ -53,11 +54,6 @@ class Resultado:
     limite_alcanzado: bool = False
 
 
-def clave_completa(estado: Estado) -> Estado:
-    """Devuelve la clave completa de ciclo: el `Estado` tal cual."""
-    return estado
-
-
 def clave_relajada(estado: Estado) -> tuple:
     """Devuelve la clave relajada: sin el valor exacto de `combustible`.
 
@@ -93,14 +89,6 @@ def crea_ciclo_en_rama(
             return True
         actual = actual.padre
     return False
-
-
-def validar_modo_ciclos(modo_ciclos: str) -> None:
-    """Lanza `ValueError` si `modo_ciclos` no es "global" ni "rama"."""
-    if modo_ciclos not in ("global", "rama"):
-        raise ValueError(
-            f'modo_ciclos inválido: {modo_ciclos!r}. Use "global" o "rama".'
-        )
 
 
 def construir_exito(
