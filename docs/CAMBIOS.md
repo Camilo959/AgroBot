@@ -404,3 +404,33 @@ la validación del modo y las cadenas del modo eliminado. Solo quedan las
 declaraciones de variables de módulo en `ui/runner.py` y `ui/animator.py`.
 
 Sin tocar: `core/`, Avara, A*, heurísticas y diseño visual.
+
+---
+
+## 2026-11-07 — Confirmaciones del profesor sobre las convenciones de búsqueda
+
+No se modificó código. Se actualizó la documentación del contexto para
+reflejar las respuestas del profesor y separar lo confirmado de los
+supuestos del equipo.
+
+Archivos modificados:
+
+- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`:
+  - Se marcaron como **confirmados por el profesor**: el nodo meta cuenta
+    como expandido; los ciclos son solo por rama en BFS, UCS y DFS; el
+    desempate de UCS por orden de creación y el orden de operadores
+    arriba/abajo/izquierda/derecha; los mundos de prueba 10x10 y de
+    pasillos en los casos de optimalidad; y el corte por `limite_nodos`
+    con mensaje de "límite alcanzado".
+  - Se mantienen como **supuestos del equipo** la clave de ciclo relajada
+    (con su razonamiento de dominancia) y los supuestos 3 a 6 del core.
+  - Se documentó la respuesta sobre el regreso al depósito con el
+    fertilizante lleno: la implementación lo descarta porque el estado ya
+    está en la rama, no pierde soluciones ni cambia el costo y evita
+    bucles; el depósito de `Prueba1` es un callejón sin salida.
+  - Se anotó, **sin confirmar**, que el vaivén dentro de la avioneta
+    cuenta como ciclo por la clave relajada.
+- `docs/CAMBIOS.md`: esta entrada.
+
+Resultado: solo cambios de documentación; sin cambios en `core/`,
+`algorithms/`, `ui/` ni pruebas.

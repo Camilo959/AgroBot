@@ -6,7 +6,7 @@ Fuentes:
 - `Tema4.pdf` (Oscar Bedoya, Inteligencia Artificial, Univalle). Las referencias `d.N` son números de diapositiva.
 - Enunciado del Proyecto 1.
 
-Las decisiones marcadas como **PENDIENTE DE CONFIRMAR** se consultarán con el profesor. Mientras tanto se aplican tal como están escritas aquí.
+Las decisiones **confirmadas por el profesor** se indican como tal. Los supuestos que aún son del equipo se listan en la sección 9.
 
 ---
 
@@ -23,6 +23,8 @@ Las decisiones marcadas como **PENDIENTE DE CONFIRMAR** se consultarán con el p
 > Expandir = verificar si es meta + crear hijos.
 > Al expandir un nodo meta no se crean sus hijos.
 
+**Confirmado por el profesor.**
+
 Consecuencias:
 
 1. **El test de meta se hace al sacar el nodo** de la cola, cola de prioridad o pila. Nunca al generarlo.
@@ -31,7 +33,7 @@ Consecuencias:
 
 ### 2.2 Orden de operadores y de hijos (d.39, d.223, d.293)
 
-- Orden fijo: **arriba, abajo, izquierda, derecha** (ya es `MOVIMIENTOS` en `core/problem.py`).
+- Orden fijo: **arriba, abajo, izquierda, derecha** (ya es `MOVIMIENTOS` en `core/problem.py`). **Confirmado por el profesor.**
 - Los hijos se consideran "de izquierda a derecha" en ese orden. El primer operador es el primero en expandirse.
 
 ### 2.3 Costo de ruta (d.10)
@@ -64,7 +66,7 @@ devolver sin solución
 - Estructura: **cola de prioridad** (`heapq`) con prioridad `g(n)`. Se expande el de menor `g`, sin importar la profundidad.
 - Es completo y **óptimo** (d.219).
 - El test de meta va **al extraer**. Si se hiciera al generar, se perdería la optimalidad.
-- Desempate cuando hay igual `g`: orden de creación (FIFO). El profesor no lo especifica, así que se documenta como supuesto.
+- Desempate cuando hay igual `g`: orden de creación (FIFO). **Confirmado por el profesor.**
 - Entradas del heap: `(g, contador_creacion, nodo)`. El contador único evita comparar nodos.
 
 ```
@@ -82,7 +84,7 @@ devolver sin solución
 ### 3.3 Profundidad evitando ciclos (d.223, d.253, d.281)
 
 - Estructura: **pila** (lista con `append` y `pop`).
-- Definición del profesor (d.281): *"se evita que sobre una misma rama se alcance un estado previo"*. Es decir, **se revisan solo los ancestros del camino actual**.
+- Definición del profesor (d.281): *"se evita que sobre una misma rama se alcance un estado previo"*. Es decir, **se revisan solo los ancestros del camino actual**. **Confirmado por el profesor.**
 - d.282: *"evitar ciclo es un concepto más completo que evitar devolverse"*. No basta con comparar con el padre. Hay que revisar toda la rama.
 - **Los hijos se apilan en orden inverso**, para que el primer operador (arriba) quede arriba de la pila y sea el primero en salir (d.254).
 - No es óptimo y puede devolver soluciones largas. Eso es esperado.
@@ -111,6 +113,8 @@ devolver sin solución
 
 Lo que el enunciado permite es volver a una casilla **cuando algo cambió**: se subió a la avioneta, recargó fertilizante o trató un cultivo. Cualquier otro regreso es un ciclo.
 
+El profesor precisó que el robot puede devolverse al llegar al depósito con el fertilizante lleno. La implementación descarta ese regreso concreto: si el estado (posición, fertilizante, cultivos pendientes y fase de la avioneta) ya está en la rama, se considera ciclo. Esto no pierde soluciones ni cambia el costo, porque volver al depósito con el fertilizante ya lleno no habilita nada nuevo. Permitirlo siempre podría generar bucles; en `Prueba1` el depósito `(0, 2)` es un callejón sin salida.
+
 ### 4.2 Problema detectado: la oscilación en la avioneta
 
 Si se usa el `Estado` completo como clave de ciclo, el campo `combustible` baja en cada movimiento mientras el robot va en la avioneta. Entonces `A → B → A` en vuelo produce un estado **distinto** (menos combustible), y no se detectaría como ciclo.
@@ -135,7 +139,7 @@ La clave relajada sigue permitiendo los regresos legítimos del enunciado, porqu
 
 ### 4.4 Detección de ciclos por rama
 
-- Se revisan los ancestros del nodo (incluido el padre), tal como lo define el profesor.
+- Se revisan los ancestros del nodo (incluido el padre), tal como lo define el profesor. **Confirmado por el profesor.**
 - No existe un conjunto compartido de estados cerrados ni un parámetro para elegir el modo de ciclos.
 - La clave relajada se usa en los tres algoritmos; es segura porque dentro de una misma fase el combustible nunca sube.
 - Se descartó la alternativa de llevar un conjunto de estados cerrados para ser fiel a la definición de evitar ciclos de las diapositivas. En `Prueba1` daba el mismo costo y la misma profundidad de solución; solo reducía los nodos expandidos.
@@ -144,7 +148,7 @@ La clave relajada sigue permitiendo los regresos legítimos del enunciado, porqu
 
 ### 4.5 Límite de seguridad
 
-Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para acotar búsquedas costosas, por ejemplo en cuadrículas abiertas donde la búsqueda por rama explora muchos caminos simples.
+Cada algoritmo acepta `limite_nodos: int | None = None`. Si se alcanza, la búsqueda se detiene y devuelve `exito = False` con `limite_alcanzado = True`. Sirve para acotar búsquedas costosas, por ejemplo en cuadrículas abiertas donde la búsqueda por rama explora muchos caminos simples. **Confirmado por el profesor:** el corte por `limite_nodos` con el mensaje de "límite alcanzado" es aceptable.
 
 ## 5. Interfaz de los algoritmos
 
@@ -188,7 +192,7 @@ Helpers en `base.py`:
 
 ## 7. Pruebas esperadas (`tests/test_algorithms.py`)
 
-Los mundos de prueba se arman escribiendo una matriz 10x10 a un archivo temporal (`tmp_path`) y cargándola con `World.desde_archivo`. Todas las llamadas usan `limite_nodos=200_000` para que ninguna prueba pueda colgarse; las pruebas de solución afirman `exito == True` y `limite_alcanzado == False`.
+Los mundos de prueba se arman escribiendo una matriz 10x10 a un archivo temporal (`tmp_path`) y cargándola con `World.desde_archivo`. Los casos de optimalidad (4 y 5) usan pasillos estrechos similares al ejemplo. **Confirmado por el profesor:** los mundos de prueba son 10x10 y parecidos al ejemplo. Todas las llamadas usan `limite_nodos=200_000` para que ninguna prueba pueda colgarse; las pruebas de solución afirman `exito == True` y `limite_alcanzado == False`.
 
 1. **Sin cultivos:** meta en la raíz. Camino vacío, `costo == 0`, `nodos_expandidos == 1`.
 2. **Un cultivo cerca del depósito:** los tres algoritmos devuelven solución válida.
@@ -213,14 +217,20 @@ Los tres algoritmos evitan ciclos solo por rama; no hay filas ni columnas de mod
 
 **Confirmado por el profesor:**
 
-1. "Profundidad del árbol" = `profundidad_maxima`.
-2. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo se determina por el combustible previo).
-3. No hay bajada voluntaria de la avioneta.
+1. Test de meta al extraer; el nodo meta cuenta como expandido y no genera hijos.
+2. Ciclos solo por rama en BFS, UCS y DFS (revisión de ancestros).
+3. Desempate de UCS por orden de creación y orden de operadores arriba, abajo, izquierda, derecha.
+4. Los mundos de prueba son 10x10 y, en los casos de optimalidad, pasillos estrechos similares al ejemplo.
+5. El corte por `limite_nodos` con mensaje de "límite alcanzado" es aceptable.
+6. "Profundidad del árbol" = `profundidad_maxima`.
+7. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo se determina por el combustible previo).
+8. No hay bajada voluntaria de la avioneta.
 
 **Supuestos del equipo:**
 
-4. Test de meta al extraer; el nodo meta cuenta como expandido y no genera hijos.
-5. Desempate en UCS por orden de creación.
-6. Ciclos solo por rama (revisión de ancestros), a la espera de confirmación con el profesor.
-7. Clave de ciclo relajada para evitar la oscilación en la avioneta.
-8. Los supuestos 3 a 6 del core (codificación de `combustible`, tratamiento automático y obligatorio, casillas transitables, orden de operadores), ya documentados en el README.
+9. Clave de ciclo relajada. Se usa para que el vaivén dentro de la avioneta cuente como ciclo y para no multiplicar nodos. Es conservadora: dentro de una misma fase el combustible no sube y un descendiente con la misma clave es igual o peor que el ancestro, así que descartarlo no pierde soluciones ni optimalidad.
+10. Los supuestos 3 a 6 del core (codificación de `combustible`, tratamiento automático y obligatorio, casillas transitables, orden de operadores), ya documentados en el README.
+
+**Nota de implementación (regreso al depósito):** el profesor respondió que el robot puede devolverse al llegar al depósito con el fertilizante lleno. La implementación descarta ese regreso concreto porque el estado ya está en la rama; no pierde soluciones ni cambia el costo y evita bucles. En `Prueba1` el depósito es un callejón sin salida.
+
+**Nota (sin confirmar):** el vaivén `A → B → A` dentro de la avioneta cuenta como ciclo en la implementación, porque la clave relajada agrupa toda la fase "en_vuelo".
