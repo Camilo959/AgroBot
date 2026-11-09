@@ -11,9 +11,12 @@ from pathlib import Path
 
 import pytest
 
+from algorithms.astar import busqueda_a_estrella
 from algorithms.base import clave_relajada
 from algorithms.bfs import busqueda_amplitud
 from algorithms.dfs import busqueda_profundidad
+from algorithms.greedy import busqueda_avara
+from algorithms.heuristics import HeuristicaAgroBot
 from algorithms.ucs import busqueda_costo_uniforme
 from core.problem import Problema
 from core.world import World
@@ -238,3 +241,120 @@ def test_10_limite_nodos(tmp_path, buscar):
     r = buscar(mundo_cerca(tmp_path), limite_nodos=3)
     assert r.exito is False
     assert r.limite_alcanzado is True
+
+
+def _heuristica(problema: Problema) -> HeuristicaAgroBot:
+    return HeuristicaAgroBot(problema.world)
+
+
+def _cero(_estado) -> float:
+    return 0.0
+
+
+def test_11_astar_igual_costo_que_ucs(tmp_path):
+    p1 = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
+    h1 = _heuristica(p1)
+    ucs1 = busqueda_costo_uniforme(p1, limite_nodos=LIMITE_PRUEBAS)
+    astar1 = busqueda_a_estrella(p1, h1, limite_nodos=LIMITE_PRUEBAS)
+    assert astar1.exito and not astar1.limite_alcanzado
+    assert ucs1.exito and not ucs1.limite_alcanzado
+    assert astar1.costo == ucs1.costo == 25.0
+    assert astar1.nodos_expandidos <= ucs1.nodos_expandidos
+
+    p2 = mundo_pasillos(tmp_path)
+    h2 = _heuristica(p2)
+    ucs2 = busqueda_costo_uniforme(p2, limite_nodos=LIMITE_PRUEBAS)
+    astar2 = busqueda_a_estrella(p2, h2, limite_nodos=LIMITE_PRUEBAS)
+    assert astar2.exito and not astar2.limite_alcanzado
+    assert ucs2.exito and not ucs2.limite_alcanzado
+    assert astar2.costo == ucs2.costo
+    assert astar2.nodos_expandidos <= ucs2.nodos_expandidos
+
+
+def test_12_astar_con_h_cero_equivale_a_ucs():
+    p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
+    astar = busqueda_a_estrella(p, _cero, limite_nodos=LIMITE_PRUEBAS)
+    ucs = busqueda_costo_uniforme(p, limite_nodos=LIMITE_PRUEBAS)
+    assert astar.exito and ucs.exito
+    assert astar.limite_alcanzado is False
+    assert ucs.limite_alcanzado is False
+    assert astar.camino == ucs.camino
+    assert astar.costo == ucs.costo
+    assert astar.nodos_expandidos == ucs.nodos_expandidos
+
+
+def test_13_avara_con_h_cero_equivale_a_bfs():
+    p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
+    avara = busqueda_avara(p, _cero, limite_nodos=LIMITE_PRUEBAS)
+    bfs = busqueda_amplitud(p, limite_nodos=LIMITE_PRUEBAS)
+    assert avara.exito and bfs.exito
+    assert avara.limite_alcanzado is False
+    assert bfs.limite_alcanzado is False
+    assert avara.camino == bfs.camino
+    assert avara.costo == bfs.costo
+    assert avara.nodos_expandidos == bfs.nodos_expandidos
+
+
+def test_14_avara_solucion_valida_y_no_optima():
+    p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
+    h = _heuristica(p)
+    avara = busqueda_avara(p, h, limite_nodos=LIMITE_PRUEBAS)
+    ucs = busqueda_costo_uniforme(p, limite_nodos=LIMITE_PRUEBAS)
+    assert avara.exito and not avara.limite_alcanzado
+    validar_reproduccion(p, avara)
+    assert avara.costo >= ucs.costo
+
+
+def test_15_sin_solucion_avara_y_astar(tmp_path):
+    p = mundo_sin_solucion(tmp_path)
+    h = _heuristica(p)
+    for buscar in (busqueda_avara, busqueda_a_estrella):
+        r = buscar(p, h, limite_nodos=LIMITE_PRUEBAS)
+        assert r.exito is False
+        assert r.camino == []
+        assert r.costo is None
+        assert r.limite_alcanzado is False
+
+
+def test_16_limite_nodos_avara_y_astar(tmp_path):
+    p = mundo_cerca(tmp_path)
+    h = _heuristica(p)
+    for buscar in (busqueda_avara, busqueda_a_estrella):
+        r = buscar(p, h, limite_nodos=1)
+        assert r.exito is False
+        assert r.limite_alcanzado is True
+
+
+def test_17_sin_cultivos_meta_en_raiz_informada(tmp_path):
+    p = escribir_mundo(
+        tmp_path, "vacio_informada.txt",
+        robot=(5, 5), deposito=(0, 0), avioneta=(9, 9),
+    )
+    h = _heuristica(p)
+    for buscar in (busqueda_avara, busqueda_a_estrella):
+        r = buscar(p, h, limite_nodos=LIMITE_PRUEBAS)
+        assert r.exito is True
+        assert r.camino == []
+        assert r.costo == 0
+        assert r.nodos_expandidos == 1
+
+
+def test_18_regresion_prueba1_informada():
+    p = Problema(World.desde_archivo(str(RUTA_PRUEBA1)))
+    h = _heuristica(p)
+
+    astar = busqueda_a_estrella(p, h, limite_nodos=LIMITE_PRUEBAS)
+    assert astar.exito and not astar.limite_alcanzado
+    assert astar.nodos_expandidos == 770
+    assert astar.nodos_generados == 1036
+    assert astar.profundidad == 40
+    assert astar.profundidad_maxima == 40
+    assert astar.costo == 25.0
+
+    avara = busqueda_avara(p, h, limite_nodos=LIMITE_PRUEBAS)
+    assert avara.exito and not avara.limite_alcanzado
+    assert avara.nodos_expandidos == 39
+    assert avara.nodos_generados == 60
+    assert avara.profundidad == 32
+    assert avara.profundidad_maxima == 32
+    assert avara.costo == 32.0

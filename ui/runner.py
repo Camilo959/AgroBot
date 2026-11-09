@@ -12,17 +12,30 @@ from multiprocessing.process import BaseProcess
 from queue import Empty
 from typing import Callable
 
+from algorithms.astar import busqueda_a_estrella
 from algorithms.base import Resultado
 from algorithms.bfs import busqueda_amplitud
 from algorithms.dfs import busqueda_profundidad
+from algorithms.greedy import busqueda_avara
+from algorithms.heuristics import HeuristicaAgroBot
 from algorithms.ucs import busqueda_costo_uniforme
 from core.problem import Problema
 from core.world import World
 
-ALGORITMOS: dict[str, Callable[..., Resultado]] = {
+ALGORITMOS_NO_INFORMADOS: dict[str, Callable[..., Resultado]] = {
     "amplitud": busqueda_amplitud,
     "costo_uniforme": busqueda_costo_uniforme,
     "profundidad": busqueda_profundidad,
+}
+
+ALGORITMOS_INFORMADOS: dict[str, Callable[..., Resultado]] = {
+    "avara": busqueda_avara,
+    "astar": busqueda_a_estrella,
+}
+
+ALGORITMOS: dict[str, Callable[..., Resultado]] = {
+    **ALGORITMOS_NO_INFORMADOS,
+    **ALGORITMOS_INFORMADOS,
 }
 
 _contexto: BaseContext = multiprocessing.get_context("spawn")
@@ -37,8 +50,15 @@ def _ejecutar_busqueda(cola: object, ruta: str, algoritmo: str,
     try:
         mundo = World.desde_archivo(ruta)
         problema = Problema(mundo)
-        funcion = ALGORITMOS[algoritmo]
-        resultado = funcion(problema, limite_nodos=limite_nodos)
+        if algoritmo in ALGORITMOS_INFORMADOS:
+            heuristica = HeuristicaAgroBot(mundo)
+            resultado = ALGORITMOS_INFORMADOS[algoritmo](
+                problema, heuristica, limite_nodos=limite_nodos
+            )
+        else:
+            resultado = ALGORITMOS_NO_INFORMADOS[algoritmo](
+                problema, limite_nodos=limite_nodos
+            )
         cola.put(("ok", resultado))
     except Exception as exc:  # pragma: no cover - se informa en la interfaz
         cola.put(("error", f"{type(exc).__name__}: {exc}"))

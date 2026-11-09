@@ -60,7 +60,7 @@ La interfaz tiene dos pantallas: la **principal** (cabecera de inicio,
 carga de mundo, elección de algoritmo, ejecución y tablero) y el
 **Resumen** (reporte y acceso a la animación). La portada anterior se
 fusionó con la pantalla principal. En la pantalla principal, "Informada"
-muestra Avara y A* deshabilitados con la leyenda "próximamente".
+habilita Avara y A*.
 
 ### Arquitectura de procesos
 
@@ -133,12 +133,13 @@ principal.
 - `core/node.py`: `Nodo` con `reconstruir_camino`, `reconstruir_estados` y
   `__lt__` (desempate por `g` y orden de creación) para usarlo en `heapq`.
 - `algorithms/base.py`: `Resultado`, claves de ciclo, detección en rama.
-- `algorithms/bfs.py`, `ucs.py`, `dfs.py`: las tres búsquedas.
+- `algorithms/bfs.py`, `ucs.py`, `dfs.py`: las tres búsquedas no informadas.
+- `algorithms/heuristics.py`: heurística B (Manhattan + MST).
+- `algorithms/greedy.py`, `astar.py`: Avara y A*.
 - `ui/`: tema centralizado, pantallas, tablero, runner de procesos,
   reporte puro y animación pygame. Ver `ui/README_UI.md`.
 
-Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`
-(Avara y A* aparecen deshabilitados en la UI).
+Fuera de alcance: cambios en `core/` y rediseño visual.
 
 ## Algoritmos de búsqueda no informada
 
@@ -162,3 +163,23 @@ Fuera de alcance por ahora: `greedy.py`, `astar.py`, `heuristics.py`
   exponencialmente y alcanzar el límite de nodos.
 - Comparación sobre `Prueba1.txt`:
   `python scripts/comparar_no_informada.py`.
+
+## Algoritmos de búsqueda informada y heurística
+
+| Algoritmo | Función | Prioridad |
+|---|---|---|
+| Avara | `busqueda_avara` | `h(n)` |
+| A* | `busqueda_a_estrella` | `g(n) + h(n)` |
+
+- Ambos usan `HeuristicaAgroBot(world)`, la misma heurística B:
+  `h = 0.5 · L`, donde `L` es una cota inferior de movimientos calculada
+  con distancias Manhattan y un MST sobre la posición, el depósito y los
+  cultivos pendientes.
+- La heurística no depende del combustible y es admisible
+  (`h(n) ≤ costo real`).
+- Se mantienen las convenciones: meta al extraer, nodo meta expandido,
+  ciclos solo por rama con clave relajada, desempate por orden de
+  creación y `limite_nodos`.
+- A* es óptimo con heurística admisible; Avara no garantiza optimalidad.
+- Comparación de los cinco algoritmos sobre `Prueba1.txt`:
+  `python scripts/comparar_algoritmos.py`.

@@ -13,7 +13,7 @@ Las decisiones **confirmadas por el profesor** se indican como tal. Los supuesto
 ## 1. Qué cubre y qué no
 
 - **Cubre:** Amplitud (BFS), Costo uniforme (UCS) y Profundidad evitando ciclos (DFS).
-- **No cubre:** Avara, A*, heurísticas, UI, `main.py`.
+- **No cubre:** Avara, A*, heurísticas, UI, `main.py`. La etapa informada se documenta en `docs/CONTEXTO_BUSQUEDA_INFORMADA.md`.
 - **El core no cambia.** `core/` (`World`, `Estado`, `Problema`, `Nodo`) ya está terminado y probado. Los algoritmos solo lo consumen.
 
 ## 2. Convenciones del profesor (obligatorias)

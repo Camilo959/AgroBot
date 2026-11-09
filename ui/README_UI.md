@@ -94,11 +94,17 @@ parámetros usan `{nombre}` y se leen con `textos.t("clave", nombre=...)`.
 ## Añadir una opción de algoritmo
 
 1. Implementar la función en `algorithms/`.
-2. Registrar el identificador en `runner.ALGORITMOS`.
+2. Registrar el identificador en `runner.ALGORITMOS_NO_INFORMADOS` o
+   `runner.ALGORITMOS_INFORMADOS` según corresponda; `runner.ALGORITMOS`
+   es la unión que usa la UI.
 3. Añadir su etiqueta en `textos.py` y en la lista de
-   `screens/juego.py`.
+   `screens/juego.py` (`ALGORITMOS_NO_INFORMADA` o
+   `ALGORITMOS_INFORMADA`).
 4. Si reporta costo, incluirlo en
    `report_panel.ALGORITMOS_CON_COSTO`.
+
+Avara y A* ya están habilitados; el proceso hijo construye
+`HeuristicaAgroBot(world)` y no se pasa la heurística entre procesos.
 
 ## Resumen dentro de la animación
 

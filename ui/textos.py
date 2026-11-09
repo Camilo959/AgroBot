@@ -27,7 +27,6 @@ TEXTOS: dict[str, str] = {
     "tipo_no_informada": "No informada",
     "tipo_informada": "Informada",
     "algoritmo": "Algoritmo",
-    "proximamente": "próximamente",
     "limite_nodos": "Límite de nodos",
     "limite_ayuda": "Avanzado: corta la búsqueda si crece demasiado.",
     "boton_ejecutar": "Ejecutar",

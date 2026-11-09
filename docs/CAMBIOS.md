@@ -434,3 +434,59 @@ Archivos modificados:
 
 Resultado: solo cambios de documentación; sin cambios en `core/`,
 `algorithms/`, `ui/` ni pruebas.
+
+---
+
+## 2026-11-08 — Búsqueda informada: heurística B, Avara y A*
+
+Se implementó la heurística B y los algoritmos informados, se habilitaron
+en la UI y se agregó el borrador del informe. No se modificó `core/` ni
+los algoritmos no informados.
+
+Archivos creados/modificados:
+
+- `algorithms/heuristics.py`: `HeuristicaAgroBot` con Manhattan + MST
+  (Prim) y los cuatro casos de `L`; `h = 0.5 · L`, sin depender del
+  combustible.
+- `algorithms/greedy.py`: `busqueda_avara` con prioridad `h(n)`.
+- `algorithms/astar.py`: `busqueda_a_estrella` con prioridad `g(n)+h(n)`.
+  Ambos reutilizan `Resultado`, `crea_ciclo_en_rama`, la clave relajada,
+  meta al extraer, conteo del meta y `limite_nodos`.
+- `algorithms/__init__.py`: exporta la heurística y las dos búsquedas.
+- `tests/test_heuristics.py`: casos de la heurística y verificación
+  exhaustiva de admisibilidad.
+- `tests/test_algorithms.py`: casos nuevos de A*/Avara, equivalencias con
+  `h ≡ 0`, solución válida, sin solución, límite, meta en raíz y regresión
+  de `Prueba1`.
+- `scripts/comparar_algoritmos.py`: tabla de los cinco algoritmos.
+- `ui/runner.py`: mapas de algoritmos informados/no informados; el proceso
+  hijo construye `HeuristicaAgroBot`.
+- `ui/screens/juego.py`: Avara y A* habilitados en "Informada".
+- `ui/textos.py`, `ui/README_UI.md`, `README.md` y `tests/test_ui_logica.py`
+  actualizados.
+- `docs/informe/heuristica.md`: borrador para revisión del equipo.
+- `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`: nota cruzada a la etapa
+  informada.
+
+Resultado: `pytest -v` → **72 passed** (15.59 s). La verificación
+exhaustiva de admisibilidad tardó ~0.37 s, encontró **12 302 estados
+alcanzables**, `h*(inicial)=25.0` y **0 violaciones**.
+
+Salida real de `scripts/comparar_algoritmos.py`:
+
+```text
+alg    exito  expandidos        generados        prof        prof_max           tiempo   costo
+BFS    True   5251              6423             30          31                 0.14     30.0
+UCS    True   9561              12335            38          40                 0.28     25.0
+DFS    True   81                105              68          76                 0.00     58.0
+Avara  True   39                60               32          32                 0.00     32.0
+A*     True   770               1036             40          40                 0.03     25.0
+```
+
+Prueba de humo con pantalla: A* (770 expandidos, costo 25.0) y Avara
+(39 expandidos, costo 32.0) sobre `Prueba1`; en ambos casos el reporte no
+se abrió automáticamente y el botón del HUD llevó al resumen.
+
+Supuestos: se siguió la revisión de `limite_nodos` antes de extraer
+(sección 3.1 y estructura de `ucs.py`); no se añadió detección anticipada
+de mundos sin solución. No se hizo commit.

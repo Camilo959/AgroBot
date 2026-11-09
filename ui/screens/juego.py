@@ -227,31 +227,21 @@ class JuegoScreen(ctk.CTkFrame):
         self._var_algoritmo.set("")
         self.sesion.algoritmo = None
 
-        if self.sesion.tipo_busqueda == "informada":
-            for _clave, clave_texto in ALGORITMOS_INFORMADA:
-                radio = Opcion(
-                    self._frame_algoritmos,
-                    text=(
-                        f"{textos.t(clave_texto)} "
-                        f"({textos.t('proximamente')})"
-                    ),
-                    variable=self._var_algoritmo,
-                    value=_clave,
-                    state="disabled",
-                )
-                radio.pack(anchor="w", pady=2)
-                self._radios.append(radio)
-        else:
-            for clave, clave_texto in ALGORITMOS_NO_INFORMADA:
-                radio = Opcion(
-                    self._frame_algoritmos,
-                    text=textos.t(clave_texto),
-                    variable=self._var_algoritmo,
-                    value=clave,
-                    command=self._al_elegir_algoritmo,
-                )
-                radio.pack(anchor="w", pady=2)
-                self._radios.append(radio)
+        lista = (
+            ALGORITMOS_INFORMADA
+            if self.sesion.tipo_busqueda == "informada"
+            else ALGORITMOS_NO_INFORMADA
+        )
+        for clave, clave_texto in lista:
+            radio = Opcion(
+                self._frame_algoritmos,
+                text=textos.t(clave_texto),
+                variable=self._var_algoritmo,
+                value=clave,
+                command=self._al_elegir_algoritmo,
+            )
+            radio.pack(anchor="w", pady=2)
+            self._radios.append(radio)
 
         self._actualizar_ejecutar()
 
@@ -434,9 +424,7 @@ class JuegoScreen(ctk.CTkFrame):
         except ValueError:
             pass
         for radio in self._radios:
-            habilitado = (
-                not activo and self.sesion.tipo_busqueda == "no_informada"
-            )
+            habilitado = not activo
             radio.configure(state="normal" if habilitado else "disabled")
 
         self._actualizar_ejecutar()

@@ -166,3 +166,11 @@ def test_registro_de_pantallas():
     assert set(PANTALLAS) == {"juego", "resumen"}
     for clase in PANTALLAS.values():
         assert callable(clase)
+
+
+def test_reporte_sin_costo_para_avara():
+    filas = dict(
+        report_panel.construir_reporte(_resultado(), "avara")
+    )
+    assert textos.t("reporte_costo") not in filas
+    assert filas[textos.t("reporte_algoritmo")] == "Avara"
