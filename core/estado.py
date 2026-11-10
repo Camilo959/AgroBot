@@ -26,7 +26,7 @@ class Estado:
 
     Nota:
         Esta clase no contiene lógica de transición; solo datos. Las
-        transiciones viven en :class:`core.problem.Problema`.
+        transiciones viven en :class:`core.problema.Problema`.
     """
 
     pos: tuple[int, int]

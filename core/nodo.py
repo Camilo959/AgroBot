@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from core.state import Estado
+from core.estado import Estado
 
 
 class Nodo:

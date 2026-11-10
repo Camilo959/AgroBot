@@ -9,19 +9,19 @@ archivos afectados y descripción del cambio.
 
 Archivos creados/modificados:
 
-- `core/world.py` (nuevo): clase `World` con `desde_archivo(ruta)`
+- `core/mundo.py` (nuevo): clase `World` con `desde_archivo(ruta)`
   (lectura y validación 10x10, valores 0-5, exactamente un 2/4/5;
   lanza `FileNotFoundError` / `ValueError`), atributos `filas`,
   `columnas`, `matriz`, `muros`, `inicio`, `deposito`, `avioneta`,
   `cultivos`, y métodos `es_libre` y `__str__`.
-- `core/state.py` (nuevo): `Estado` como `@dataclass(frozen=True)` con
+- `core/estado.py` (nuevo): `Estado` como `@dataclass(frozen=True)` con
   `pos`, `fertilizante`, `combustible`, `cultivos_pendientes`. Sin
   lógica de transición.
-- `core/problem.py` (nuevo): `Problema` con `estado_inicial`,
+- `core/problema.py` (nuevo): `Problema` con `estado_inicial`,
   `es_meta`, `sucesores` (orden arriba/abajo/izquierda/derecha) y
   constante `MOVIMIENTOS`. Orden de eventos: costo/combustible →
   depósito/cultivo → abordaje de avioneta.
-- `core/node.py` (nuevo): `Nodo` con `__slots__`,
+- `core/nodo.py` (nuevo): `Nodo` con `__slots__`,
   `reconstruir_camino`, `reconstruir_estados` y `__lt__` (desempate
   por `g` y contador de creación) para `heapq`.
 - `core/__init__.py` (modificado): exporta
@@ -56,7 +56,7 @@ Supuestos de diseño adoptados:
 6. Orden fijo: arriba, abajo, izquierda, derecha; ciclos sobre el
    estado completo.
 
-Sin tocar (fuera de alcance): `algorithms/`, `ui/`, `main.py`.
+Sin tocar (fuera de alcance): `algoritmos/`, `ui/`, `main.py`.
 
 ---
 
@@ -69,19 +69,19 @@ creación y `es_meta`).
 
 Archivos creados/modificados:
 
-- `algorithms/base.py` (nuevo): `Resultado` (`exito`, `camino`,
+- `algoritmos/base.py` (nuevo): `Resultado` (`exito`, `camino`,
   `estados`, `nodos_expandidos`, `nodos_generados`, `profundidad`,
   `profundidad_maxima`, `tiempo`, `costo`, `limite_alcanzado`),
   `clave_relajada` (fase `sin_abordar` / `en_vuelo` / `agotada` según
   `combustible`), `crea_ciclo_en_rama`, `construir_exito` /
   `construir_fracaso` y `ahora` (`time.perf_counter`).
-- `algorithms/bfs.py` (nuevo): `busqueda_amplitud` con `deque` y clave
+- `algoritmos/busqueda_no_informada/amplitud.py` (nuevo): `busqueda_amplitud` con `deque` y clave
   relajada.
-- `algorithms/ucs.py` (nuevo): `busqueda_costo_uniforme` con `heapq`
+- `algoritmos/busqueda_no_informada/costo_uniforme.py` (nuevo): `busqueda_costo_uniforme` con `heapq`
   `(g, contador, nodo)` y clave relajada.
-- `algorithms/dfs.py` (nuevo): `busqueda_profundidad` iterativa con
+- `algoritmos/busqueda_no_informada/profundidad.py` (nuevo): `busqueda_profundidad` iterativa con
   pila e hijos en orden inverso.
-- `algorithms/__init__.py` (modificado): exporta las tres búsquedas.
+- `algoritmos/__init__.py` (modificado): exporta las tres búsquedas.
 - `tests/test_algorithms.py` (nuevo): casos de la especificación. El
   caso sin solución usa un depósito inalcanzable (robot encerrado) para
   que DFS no agote un área abierta.
@@ -125,7 +125,7 @@ búsqueda es tratable.
 
 Archivos modificados:
 
-- `algorithms/bfs.py`, `algorithms/ucs.py`, `algorithms/dfs.py`: ajuste
+- `algoritmos/busqueda_no_informada/amplitud.py`, `algoritmos/busqueda_no_informada/costo_uniforme.py`, `algoritmos/busqueda_no_informada/profundidad.py`: ajuste
   de la detección de ciclos y de los docstrings.
 - `tests/test_algorithms.py`: `test_4` y `test_5` se rediseñaron con
   pasillos estrechos para que la búsqueda por rama sea tratable.
@@ -145,8 +145,9 @@ DFS    True   81                105              68          76                 
 UCS abarata el costo (25.0 vs 30.0) usando la avioneta; DFS da una
 solución larga (68 pasos, costo 58.0), como es esperado.
 
-Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`, `greedy.py`,
-`astar.py`, `heuristics.py`.
+Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`,
+`algoritmos/busqueda_informada/avara.py`, `a_estrella.py` y
+`heuristicas.py`.
 
 ---
 
@@ -154,7 +155,7 @@ Sin tocar (fuera de alcance): `core/`, `ui/`, `main.py`, `greedy.py`,
 
 Aplicación completa de escritorio con customtkinter (ventana principal) y
 pygame (animación en proceso aparte). No se modificó `core/` ni
-`algorithms/`.
+`algoritmos/`.
 
 Archivos creados:
 
@@ -365,10 +366,10 @@ avioneta cuente como ciclo. No se tocó `core/` ni el conteo de nodos.
 
 Archivos modificados:
 
-- `algorithms/base.py`: se eliminaron la validación del modo de ciclos y
+- `algoritmos/base.py`: se eliminaron la validación del modo de ciclos y
   la clave completa; se conservan `clave_relajada`, `crea_ciclo_en_rama`,
   `Resultado` y los constructores.
-- `algorithms/bfs.py`, `algorithms/ucs.py`, `algorithms/dfs.py`: firmas
+- `algoritmos/busqueda_no_informada/amplitud.py`, `algoritmos/busqueda_no_informada/costo_uniforme.py`, `algoritmos/busqueda_no_informada/profundidad.py`: firmas
   `busqueda_*(problema, limite_nodos=None)`; se eliminaron los conjuntos
   de cerrados y las ramas del modo alternativo. Los tres usan siempre
   `crea_ciclo_en_rama` con clave relajada.
@@ -433,7 +434,7 @@ Archivos modificados:
 - `docs/CAMBIOS.md`: esta entrada.
 
 Resultado: solo cambios de documentación; sin cambios en `core/`,
-`algorithms/`, `ui/` ni pruebas.
+`algoritmos/`, `ui/` ni pruebas.
 
 ---
 
@@ -445,14 +446,14 @@ los algoritmos no informados.
 
 Archivos creados/modificados:
 
-- `algorithms/heuristics.py`: `HeuristicaAgroBot` con Manhattan + MST
+- `algoritmos/busqueda_informada/heuristicas.py`: `HeuristicaAgroBot` con Manhattan + MST
   (Prim) y los cuatro casos de `L`; `h = 0.5 · L`, sin depender del
   combustible.
-- `algorithms/greedy.py`: `busqueda_avara` con prioridad `h(n)`.
-- `algorithms/astar.py`: `busqueda_a_estrella` con prioridad `g(n)+h(n)`.
+- `algoritmos/busqueda_informada/avara.py`: `busqueda_avara` con prioridad `h(n)`.
+- `algoritmos/busqueda_informada/a_estrella.py`: `busqueda_a_estrella` con prioridad `g(n)+h(n)`.
   Ambos reutilizan `Resultado`, `crea_ciclo_en_rama`, la clave relajada,
   meta al extraer, conteo del meta y `limite_nodos`.
-- `algorithms/__init__.py`: exporta la heurística y las dos búsquedas.
+- `algoritmos/__init__.py`: exporta la heurística y las dos búsquedas.
 - `tests/test_heuristics.py`: casos de la heurística y verificación
   exhaustiva de admisibilidad.
 - `tests/test_algorithms.py`: casos nuevos de A*/Avara, equivalencias con
@@ -490,3 +491,39 @@ se abrió automáticamente y el botón del HUD llevó al resumen.
 Supuestos: se siguió la revisión de `limite_nodos` antes de extraer
 (sección 3.1 y estructura de `ucs.py`); no se añadió detección anticipada
 de mundos sin solución. No se hizo commit.
+
+---
+
+## 2026-11-08 — Organización en español de `algoritmos/` y `core/`
+
+Se renombraron las carpetas y archivos de algoritmos y core al español,
+y se dividieron los algoritmos en búsqueda informada y no informada. Se
+actualizaron todas las importaciones y referencias del proyecto.
+
+Archivos movidos/creados:
+
+- `algorithms/` → `algoritmos/`.
+- `algoritmos/base.py` (sin cambio de nombre).
+- `algoritmos/busqueda_no_informada/`:
+  - `amplitud.py` (antes `bfs.py`).
+  - `costo_uniforme.py` (antes `ucs.py`).
+  - `profundidad.py` (antes `dfs.py`).
+  - `__init__.py` (nuevo).
+- `algoritmos/busqueda_informada/`:
+  - `avara.py` (antes `greedy.py`).
+  - `a_estrella.py` (antes `astar.py`).
+  - `heuristicas.py` (antes `heuristics.py`).
+  - `__init__.py` (nuevo).
+- `algoritmos/__init__.py`: reexporta desde ambos subpaquetes.
+- `core/mundo.py` (antes `world.py`).
+- `core/estado.py` (antes `state.py`).
+- `core/problema.py` (antes `problem.py`).
+- `core/nodo.py` (antes `node.py`).
+
+Referencias actualizadas en `core/`, `algoritmos/`, `tests/`, `ui/`,
+`scripts/`, `main.py`, `README.md`, `ui/README_UI.md` y documentación de
+contexto. Los nombres de clases, funciones y pruebas se mantuvieron.
+
+Resultado: `pytest -q` → **72 passed** (12.29 s). Los scripts
+`comparar_no_informada.py` y `comparar_algoritmos.py` siguen funcionando
+con las mismas cifras.

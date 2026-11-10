@@ -20,8 +20,8 @@ import time
 from collections.abc import Callable, Hashable
 from dataclasses import dataclass, field
 
-from core.node import Nodo
-from core.state import Estado
+from core.nodo import Nodo
+from core.estado import Estado
 
 
 @dataclass

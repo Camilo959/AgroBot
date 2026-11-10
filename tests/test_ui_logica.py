@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from PIL import Image
 
-from algorithms.base import Resultado
-from core.state import Estado
+from algoritmos.base import Resultado
+from core.estado import Estado
 from ui import assets_loader, animator, report_panel, theme, textos
 from ui.screens import PANTALLAS
 

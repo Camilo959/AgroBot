@@ -13,10 +13,10 @@ from pathlib import Path
 
 import pytest
 
-from algorithms.heuristics import HeuristicaAgroBot
-from core.problem import Problema
-from core.state import Estado
-from core.world import World
+from algoritmos.busqueda_informada.heuristicas import HeuristicaAgroBot
+from core.problema import Problema
+from core.estado import Estado
+from core.mundo import World
 
 RUTA_PRUEBA1 = Path(__file__).resolve().parent.parent / "worlds" / "Prueba1.txt"
 

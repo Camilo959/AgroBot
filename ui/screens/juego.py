@@ -8,7 +8,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 
-from core.world import World
+from core.mundo import World
 from ui import assets_loader, animator, report_panel, runner, theme, textos
 from ui.board_view import TableroCanvas
 from ui.componentes import (

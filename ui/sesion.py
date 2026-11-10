@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from algorithms.base import Resultado
-from core.world import World
+from algoritmos.base import Resultado
+from core.mundo import World
 from ui import theme
 
 

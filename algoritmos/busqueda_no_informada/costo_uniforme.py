@@ -1,17 +1,18 @@
-"""Búsqueda Avara (Greedy Best-First) para el AgroBot.
+"""Búsqueda de costo uniforme (UCS) para el AgroBot.
 
-Expande el nodo con menor h(n), sin importar la profundidad. No es óptima
-ni completa en general, pero con ciclos por rama explora un árbol finito.
-La heurística se recibe como callable h(estado) -> float.
+Estructura: cola de prioridad (`heapq`) con prioridad `g(n)`. Completo y
+óptimo. El test de meta va al extraer: hacerlo al generar perdería la
+optimalidad. Los ciclos se detectan solo por rama con la clave relajada.
+Desempate por orden de creación (FIFO), como supuesto documentado (el
+profesor no lo especifica).
 """
 
 from __future__ import annotations
 
 import heapq
 import itertools
-from collections.abc import Callable
 
-from algorithms.base import (
+from algoritmos.base import (
     Resultado,
     ahora,
     clave_relajada,
@@ -19,21 +20,18 @@ from algorithms.base import (
     construir_fracaso,
     crea_ciclo_en_rama,
 )
-from core.node import Nodo
-from core.problem import Problema
-from core.state import Estado
+from core.nodo import Nodo
+from core.problema import Problema
 
 
-def busqueda_avara(
+def busqueda_costo_uniforme(
     problema: Problema,
-    heuristica: Callable[[Estado], float],
     limite_nodos: int | None = None,
 ) -> Resultado:
-    """Busca con Avara: expande el nodo de menor h(n).
+    """Busca con UCS: expande el nodo de menor `g` con `heapq`.
 
     Args:
         problema: problema a resolver.
-        heuristica: función h(estado) -> float.
         limite_nodos: máximo de nodos a expandir. Al alcanzarlo se
             devuelve `exito=False` con `limite_alcanzado=True`.
 
@@ -47,7 +45,7 @@ def busqueda_avara(
     profundidad_maxima = 0
     nodos_expandidos = 0
     contador = itertools.count()
-    frontera: list = [(heuristica(raiz.estado), next(contador), raiz)]
+    frontera: list = [(raiz.g, next(contador), raiz)]
 
     while frontera:
         if limite_nodos is not None and nodos_expandidos >= limite_nodos:
@@ -72,10 +70,7 @@ def busqueda_avara(
             nodos_generados += 1
             if hijo.profundidad > profundidad_maxima:
                 profundidad_maxima = hijo.profundidad
-            heapq.heappush(
-                frontera,
-                (heuristica(estado_hijo), next(contador), hijo),
-            )
+            heapq.heappush(frontera, (hijo.g, next(contador), hijo))
 
     return construir_fracaso(
         nodos_expandidos, nodos_generados, profundidad_maxima, ahora() - t0

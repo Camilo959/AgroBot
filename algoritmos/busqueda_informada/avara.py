@@ -1,15 +1,17 @@
-"""Búsqueda en amplitud (BFS) para el AgroBot.
+"""Búsqueda Avara (Greedy Best-First) para el AgroBot.
 
-Estructura: cola FIFO (`collections.deque`). Completo y óptimo en número
-de pasos, pero no en costo (los pasos cuestan 1 o 0.5). Los ciclos se
-detectan solo por rama con la clave relajada.
+Expande el nodo con menor h(n), sin importar la profundidad. No es óptima
+ni completa en general, pero con ciclos por rama explora un árbol finito.
+La heurística se recibe como callable h(estado) -> float.
 """
 
 from __future__ import annotations
 
-from collections import deque
+import heapq
+import itertools
+from collections.abc import Callable
 
-from algorithms.base import (
+from algoritmos.base import (
     Resultado,
     ahora,
     clave_relajada,
@@ -17,18 +19,21 @@ from algorithms.base import (
     construir_fracaso,
     crea_ciclo_en_rama,
 )
-from core.node import Nodo
-from core.problem import Problema
+from core.nodo import Nodo
+from core.problema import Problema
+from core.estado import Estado
 
 
-def busqueda_amplitud(
+def busqueda_avara(
     problema: Problema,
+    heuristica: Callable[[Estado], float],
     limite_nodos: int | None = None,
 ) -> Resultado:
-    """Busca con BFS: expande por niveles con cola FIFO.
+    """Busca con Avara: expande el nodo de menor h(n).
 
     Args:
         problema: problema a resolver.
+        heuristica: función h(estado) -> float.
         limite_nodos: máximo de nodos a expandir. Al alcanzarlo se
             devuelve `exito=False` con `limite_alcanzado=True`.
 
@@ -41,15 +46,16 @@ def busqueda_amplitud(
     nodos_generados = 1
     profundidad_maxima = 0
     nodos_expandidos = 0
-    cola: deque[Nodo] = deque([raiz])
+    contador = itertools.count()
+    frontera: list = [(heuristica(raiz.estado), next(contador), raiz)]
 
-    while cola:
+    while frontera:
         if limite_nodos is not None and nodos_expandidos >= limite_nodos:
             return construir_fracaso(
                 nodos_expandidos, nodos_generados, profundidad_maxima,
                 ahora() - t0, limite_alcanzado=True,
             )
-        n = cola.popleft()
+        _, _, n = heapq.heappop(frontera)
         # Expandir = verificar si es meta + crear hijos. El meta cuenta.
         nodos_expandidos += 1
         if problema.es_meta(n.estado):
@@ -66,7 +72,10 @@ def busqueda_amplitud(
             nodos_generados += 1
             if hijo.profundidad > profundidad_maxima:
                 profundidad_maxima = hijo.profundidad
-            cola.append(hijo)
+            heapq.heappush(
+                frontera,
+                (heuristica(estado_hijo), next(contador), hijo),
+            )
 
     return construir_fracaso(
         nodos_expandidos, nodos_generados, profundidad_maxima, ahora() - t0

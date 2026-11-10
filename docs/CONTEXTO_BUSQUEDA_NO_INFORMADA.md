@@ -1,6 +1,6 @@
 # Contexto: algoritmos de búsqueda no informada (AgroBot)
 
-Documento de referencia para implementar `algorithms/base.py`, `bfs.py`, `ucs.py` y `dfs.py`.
+Documento de referencia para implementar `algoritmos/base.py`, `busqueda_no_informada/amplitud.py`, `costo_uniforme.py` y `profundidad.py`.
 
 Fuentes:
 - `Tema4.pdf` (Oscar Bedoya, Inteligencia Artificial, Univalle). Las referencias `d.N` son números de diapositiva.
@@ -33,7 +33,7 @@ Consecuencias:
 
 ### 2.2 Orden de operadores y de hijos (d.39, d.223, d.293)
 
-- Orden fijo: **arriba, abajo, izquierda, derecha** (ya es `MOVIMIENTOS` en `core/problem.py`). **Confirmado por el profesor.**
+- Orden fijo: **arriba, abajo, izquierda, derecha** (ya es `MOVIMIENTOS` en `core/problema.py`). **Confirmado por el profesor.**
 - Los hijos se consideran "de izquierda a derecha" en ese orden. El primer operador es el primero en expandirse.
 
 ### 2.3 Costo de ruta (d.10)
@@ -158,7 +158,7 @@ busqueda_costo_uniforme(problema, limite_nodos=None) -> Resultado
 busqueda_profundidad(problema, limite_nodos=None) -> Resultado
 ```
 
-### `Resultado` (en `algorithms/base.py`)
+### `Resultado` (en `algoritmos/base.py`)
 
 | Campo | Significado |
 |---|---|

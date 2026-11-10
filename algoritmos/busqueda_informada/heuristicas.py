@@ -18,8 +18,8 @@ sea admisible" (d.187), adaptada a varios cultivos y al depósito.
 
 from __future__ import annotations
 
-from core.state import Estado
-from core.world import World
+from core.estado import Estado
+from core.mundo import World
 
 
 class HeuristicaAgroBot:

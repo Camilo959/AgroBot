@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from core.world import World
+from core.mundo import World
 
 RUTA_PRUEBA1 = Path(__file__).resolve().parent.parent / "worlds" / "Prueba1.txt"
 

@@ -5,10 +5,10 @@ from __future__ import annotations
 import heapq
 from pathlib import Path
 
-from core.node import Nodo
-from core.problem import Problema
-from core.state import Estado
-from core.world import World
+from core.nodo import Nodo
+from core.problema import Problema
+from core.estado import Estado
+from core.mundo import World
 
 RUTA_PRUEBA1 = Path(__file__).resolve().parent.parent / "worlds" / "Prueba1.txt"
 

@@ -6,7 +6,7 @@ import tkinter as tk
 
 from PIL import ImageTk
 
-from core.world import World
+from core.mundo import World
 from ui import assets_loader, theme
 
 

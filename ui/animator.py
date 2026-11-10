@@ -10,8 +10,8 @@ from __future__ import annotations
 import multiprocessing
 from multiprocessing.process import BaseProcess
 
-from core.state import Estado
-from core.world import World
+from core.estado import Estado
+from core.mundo import World
 from ui import assets_loader, report_panel, theme, textos
 
 _proceso: BaseProcess | None = None

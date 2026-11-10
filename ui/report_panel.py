@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.state import Estado
-from algorithms.base import Resultado
+from core.estado import Estado
+from algoritmos.base import Resultado
 from ui import textos
 
 #: Algoritmos cuyos resultados reportan costo de solución.

@@ -93,7 +93,7 @@ parámetros usan `{nombre}` y se leen con `textos.t("clave", nombre=...)`.
 
 ## Añadir una opción de algoritmo
 
-1. Implementar la función en `algorithms/`.
+1. Implementar la función en `algoritmos/`.
 2. Registrar el identificador en `runner.ALGORITMOS_NO_INFORMADOS` o
    `runner.ALGORITMOS_INFORMADOS` según corresponda; `runner.ALGORITMOS`
    es la unión que usa la UI.

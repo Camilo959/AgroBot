@@ -11,7 +11,7 @@ import heapq
 import itertools
 from collections.abc import Callable
 
-from algorithms.base import (
+from algoritmos.base import (
     Resultado,
     ahora,
     clave_relajada,
@@ -19,9 +19,9 @@ from algorithms.base import (
     construir_fracaso,
     crea_ciclo_en_rama,
 )
-from core.node import Nodo
-from core.problem import Problema
-from core.state import Estado
+from core.nodo import Nodo
+from core.problema import Problema
+from core.estado import Estado
 
 
 def busqueda_a_estrella(

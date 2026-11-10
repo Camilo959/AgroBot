@@ -1,6 +1,6 @@
 # Contexto: búsqueda informada (Avara y A*) y heurística (AgroBot)
 
-Documento de referencia para implementar `algorithms/heuristics.py`, `greedy.py` y `astar.py`, habilitarlos en la UI y redactar el borrador del informe.
+Documento de referencia para implementar `algoritmos/busqueda_informada/heuristicas.py`, `avara.py` y `a_estrella.py`, habilitarlos en la UI y redactar el borrador del informe.
 
 Fuentes:
 - `Tema5.pdf` (Oscar Bedoya, Inteligencia Artificial, Univalle). Las referencias `d.N` son números de diapositiva.
@@ -51,7 +51,7 @@ busqueda_a_estrella(problema, heuristica, limite_nodos=None) -> Resultado
 
 - `heuristica` es un callable `h(estado) -> float` (sección 4).
 - El `Resultado` es el mismo de los no informados. El costo `g` de la solución se calcula siempre; la UI lo muestra solo en Costo uniforme y A*.
-- Copia la estructura de `algorithms/ucs.py` (contador, revisión de `limite_nodos` antes de extraer, constructores de éxito y fracaso).
+- Copia la estructura de `algoritmos/busqueda_no_informada/costo_uniforme.py` (contador, revisión de `limite_nodos` antes de extraer, constructores de éxito y fracaso).
 
 ### 3.2 Pseudocódigo
 
@@ -88,7 +88,7 @@ Con Manhattan, `h` nunca es infinita: no detecta que un cultivo está encerrado 
 
 ## 4. Heurística B
 
-Se implementa como clase en `algorithms/heuristics.py`:
+Se implementa como clase en `algoritmos/busqueda_informada/heuristicas.py`:
 
 ```python
 class HeuristicaAgroBot:

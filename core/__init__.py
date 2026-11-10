@@ -1,8 +1,8 @@
 """Paquete core: lógica pura del AgroBot (sin UI ni algoritmos)."""
 
-from core.node import Nodo
-from core.problem import Problema
-from core.state import Estado
-from core.world import World
+from core.nodo import Nodo
+from core.problema import Problema
+from core.estado import Estado
+from core.mundo import World
 
 __all__ = ["Estado", "Nodo", "Problema", "World"]

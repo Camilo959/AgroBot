@@ -8,16 +8,17 @@ todos los cultivos secos. Stack: Python, pygame y customtkinter.
 ```text
 agrobot/
 ├── main.py, requirements.txt, README.md, pytest.ini
-├── core/      (world.py, state.py, problem.py, node.py)
-├── algorithms/ (base.py, bfs.py, ucs.py, dfs.py, ...)
+├── core/      (mundo.py, estado.py, problema.py, nodo.py)
+├── algoritmos/ (base.py, busqueda_no_informada/, busqueda_informada/)
 ├── ui/        (app.py, theme.py, textos.py, componentes.py, board_view.py,
 │              runner.py, animator.py, report_panel.py, sesion.py,
 │              assets_loader.py, screens/, assets/)
-├── scripts/   (comparar_no_informada.py)
+├── scripts/   (comparar_no_informada.py, comparar_algoritmos.py)
 ├── worlds/    (Prueba1.txt, ...)
 ├── tests/     (test_world.py, test_problem.py, test_algorithms.py,
-│              test_ui_logica.py)
-└── docs/      (informe/, CAMBIOS.md, CONTEXTO_BUSQUEDA_NO_INFORMADA.md)
+│              test_heuristics.py, test_ui_logica.py)
+└── docs/      (informe/, CAMBIOS.md, CONTEXTO_BUSQUEDA_NO_INFORMADA.md,
+               CONTEXTO_BUSQUEDA_INFORMADA.md)
 ```
 
 ## Entorno virtual
@@ -124,18 +125,20 @@ principal.
    + combustible + pendientes), así el agente puede volver a una casilla si
    algo cambió (abordó la avioneta, recargó fertilizante o trató un cultivo).
 
-## Alcance actual (core + búsqueda no informada + UI)
+## Alcance actual (core + búsqueda no informada e informada + UI)
 
-- `core/world.py`: clase `World` con `desde_archivo`, `es_libre` y `__str__`.
-- `core/state.py`: `Estado` como `@dataclass(frozen=True)` (hasheable).
-- `core/problem.py`: `Problema` con `estado_inicial`, `es_meta` y
+- `core/mundo.py`: clase `World` con `desde_archivo`, `es_libre` y `__str__`.
+- `core/estado.py`: `Estado` como `@dataclass(frozen=True)` (hasheable).
+- `core/problema.py`: `Problema` con `estado_inicial`, `es_meta` y
   `sucesores` (lista de `(accion, estado_nuevo, costo)`).
-- `core/node.py`: `Nodo` con `reconstruir_camino`, `reconstruir_estados` y
+- `core/nodo.py`: `Nodo` con `reconstruir_camino`, `reconstruir_estados` y
   `__lt__` (desempate por `g` y orden de creación) para usarlo en `heapq`.
-- `algorithms/base.py`: `Resultado`, claves de ciclo, detección en rama.
-- `algorithms/bfs.py`, `ucs.py`, `dfs.py`: las tres búsquedas no informadas.
-- `algorithms/heuristics.py`: heurística B (Manhattan + MST).
-- `algorithms/greedy.py`, `astar.py`: Avara y A*.
+- `algoritmos/base.py`: `Resultado`, claves de ciclo, detección en rama.
+- `algoritmos/busqueda_no_informada/`: `amplitud.py`, `costo_uniforme.py`
+  y `profundidad.py`.
+- `algoritmos/busqueda_informada/heuristicas.py`: heurística B
+  (Manhattan + MST).
+- `algoritmos/busqueda_informada/`: `avara.py` y `a_estrella.py`.
 - `ui/`: tema centralizado, pantallas, tablero, runner de procesos,
   reporte puro y animación pygame. Ver `ui/README_UI.md`.
 

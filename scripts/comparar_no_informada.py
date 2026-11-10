@@ -19,12 +19,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from algorithms.base import Resultado
-from algorithms.bfs import busqueda_amplitud
-from algorithms.dfs import busqueda_profundidad
-from algorithms.ucs import busqueda_costo_uniforme
-from core.problem import Problema
-from core.world import World
+from algoritmos.base import Resultado
+from algoritmos.busqueda_no_informada.amplitud import busqueda_amplitud
+from algoritmos.busqueda_no_informada.profundidad import busqueda_profundidad
+from algoritmos.busqueda_no_informada.costo_uniforme import busqueda_costo_uniforme
+from core.problema import Problema
+from core.mundo import World
 
 
 def fila(nombre: str, r: Resultado) -> str:

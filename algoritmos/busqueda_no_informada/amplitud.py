@@ -1,18 +1,15 @@
-"""Búsqueda de costo uniforme (UCS) para el AgroBot.
+"""Búsqueda en amplitud (BFS) para el AgroBot.
 
-Estructura: cola de prioridad (`heapq`) con prioridad `g(n)`. Completo y
-óptimo. El test de meta va al extraer: hacerlo al generar perdería la
-optimalidad. Los ciclos se detectan solo por rama con la clave relajada.
-Desempate por orden de creación (FIFO), como supuesto documentado (el
-profesor no lo especifica).
+Estructura: cola FIFO (`collections.deque`). Completo y óptimo en número
+de pasos, pero no en costo (los pasos cuestan 1 o 0.5). Los ciclos se
+detectan solo por rama con la clave relajada.
 """
 
 from __future__ import annotations
 
-import heapq
-import itertools
+from collections import deque
 
-from algorithms.base import (
+from algoritmos.base import (
     Resultado,
     ahora,
     clave_relajada,
@@ -20,15 +17,15 @@ from algorithms.base import (
     construir_fracaso,
     crea_ciclo_en_rama,
 )
-from core.node import Nodo
-from core.problem import Problema
+from core.nodo import Nodo
+from core.problema import Problema
 
 
-def busqueda_costo_uniforme(
+def busqueda_amplitud(
     problema: Problema,
     limite_nodos: int | None = None,
 ) -> Resultado:
-    """Busca con UCS: expande el nodo de menor `g` con `heapq`.
+    """Busca con BFS: expande por niveles con cola FIFO.
 
     Args:
         problema: problema a resolver.
@@ -44,16 +41,15 @@ def busqueda_costo_uniforme(
     nodos_generados = 1
     profundidad_maxima = 0
     nodos_expandidos = 0
-    contador = itertools.count()
-    frontera: list = [(raiz.g, next(contador), raiz)]
+    cola: deque[Nodo] = deque([raiz])
 
-    while frontera:
+    while cola:
         if limite_nodos is not None and nodos_expandidos >= limite_nodos:
             return construir_fracaso(
                 nodos_expandidos, nodos_generados, profundidad_maxima,
                 ahora() - t0, limite_alcanzado=True,
             )
-        _, _, n = heapq.heappop(frontera)
+        n = cola.popleft()
         # Expandir = verificar si es meta + crear hijos. El meta cuenta.
         nodos_expandidos += 1
         if problema.es_meta(n.estado):
@@ -70,7 +66,7 @@ def busqueda_costo_uniforme(
             nodos_generados += 1
             if hijo.profundidad > profundidad_maxima:
                 profundidad_maxima = hijo.profundidad
-            heapq.heappush(frontera, (hijo.g, next(contador), hijo))
+            cola.append(hijo)
 
     return construir_fracaso(
         nodos_expandidos, nodos_generados, profundidad_maxima, ahora() - t0

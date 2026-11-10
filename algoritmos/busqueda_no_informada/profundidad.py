@@ -8,7 +8,7 @@ pila. No es óptimo y puede dar soluciones largas: es lo esperado.
 
 from __future__ import annotations
 
-from algorithms.base import (
+from algoritmos.base import (
     Resultado,
     ahora,
     clave_relajada,
@@ -16,8 +16,8 @@ from algorithms.base import (
     construir_fracaso,
     crea_ciclo_en_rama,
 )
-from core.node import Nodo
-from core.problem import Problema
+from core.nodo import Nodo
+from core.problema import Problema
 
 
 def busqueda_profundidad(
