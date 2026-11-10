@@ -43,9 +43,10 @@ def test_reporte_sin_costo_para_amplitud_y_profundidad():
             report_panel.nombre_algoritmo(algoritmo)
         )
         assert filas[textos.t("reporte_expandidos")] == "5"
+        assert filas[textos.t("reporte_generados")] == "7"
         assert filas[textos.t("reporte_profundidad")] == "3"
+        assert filas[textos.t("reporte_profundidad_solucion")] == "1"
         assert filas[textos.t("reporte_tiempo")] == "0.123 s"
-        assert filas[textos.t("reporte_pasos")] == "1"
 
 
 def test_reporte_con_costo_para_costo_uniforme_y_astar():
@@ -82,7 +83,9 @@ def test_reporte_sin_solucion():
         "reporte_sin_solucion"
     )
     assert textos.t("reporte_costo") not in filas
-    assert textos.t("reporte_pasos") not in filas
+    assert textos.t("reporte_profundidad_solucion") not in filas
+    assert filas[textos.t("reporte_generados")] == "7"
+    assert filas[textos.t("reporte_profundidad")] == "3"
 
 
 def test_reporte_limite_alcanzado():
@@ -95,6 +98,7 @@ def test_reporte_limite_alcanzado():
         "reporte_limite"
     )
     assert textos.t("reporte_costo") not in filas
+    assert textos.t("reporte_profundidad_solucion") not in filas
 
 
 def test_costo_por_paso_y_acumulado():

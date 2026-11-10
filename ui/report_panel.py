@@ -59,10 +59,10 @@ def construir_reporte(
     """Construye las filas (etiqueta, valor) del reporte de resultados.
 
     Reglas:
-        - Nodos expandidos, profundidad del árbol (profundidad_maxima) y
-          tiempo se muestran siempre.
-        - El costo de la solución solo aparece para "Costo uniforme" (y
-          A* cuando exista).
+        - Nodos expandidos, nodos generados, profundidad máxima del árbol
+          y tiempo se muestran siempre.
+        - La profundidad de la solución solo aparece cuando hay éxito.
+        - El costo de la solución solo aparece para "Costo uniforme" y A*.
         - Sin solución y límite alcanzado se indican en la fila "Estado".
     """
     if resultado.exito:
@@ -76,16 +76,28 @@ def construir_reporte(
         (textos.t("reporte_algoritmo"), nombre_algoritmo(algoritmo)),
         (textos.t("reporte_estado"), estado),
         (textos.t("reporte_expandidos"), str(resultado.nodos_expandidos)),
-        (textos.t("reporte_profundidad"), str(resultado.profundidad_maxima)),
-        (textos.t("reporte_tiempo"), f"{resultado.tiempo:.3f} s"),
+        (textos.t("reporte_generados"), str(resultado.nodos_generados)),
     ]
 
     if resultado.exito:
-        filas.append((textos.t("reporte_pasos"), str(len(resultado.camino))))
-        if algoritmo in ALGORITMOS_CON_COSTO and resultado.costo is not None:
-            filas.append(
-                (textos.t("reporte_costo"), f"{resultado.costo:.1f}")
-            )
+        filas.append(
+            (textos.t("reporte_profundidad_solucion"),
+             str(resultado.profundidad))
+        )
+
+    filas.extend([
+        (textos.t("reporte_profundidad"), str(resultado.profundidad_maxima)),
+        (textos.t("reporte_tiempo"), f"{resultado.tiempo:.3f} s"),
+    ])
+
+    if (
+        resultado.exito
+        and algoritmo in ALGORITMOS_CON_COSTO
+        and resultado.costo is not None
+    ):
+        filas.append(
+            (textos.t("reporte_costo"), f"{resultado.costo:.1f}")
+        )
 
     return filas
 
