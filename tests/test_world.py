@@ -45,6 +45,12 @@ def test_archivo_inexistente():
         World.desde_archivo(" mundos/no_existe.txt")
 
 
+def test_ruta_que_no_es_archivo(tmp_path):
+    # Un directorio no se puede abrir como archivo de mundo.
+    with pytest.raises(OSError):
+        World.desde_archivo(str(tmp_path))
+
+
 def test_error_dos_robots(tmp_path):
     filas = list(BASE_VALIDA)
     # Agrega un segundo robot en (1, 0), que era libre.

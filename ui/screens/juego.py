@@ -270,7 +270,7 @@ class JuegoScreen(ctk.CTkFrame):
             return
         try:
             world = World.desde_archivo(ruta)
-        except (ValueError, FileNotFoundError) as exc:
+        except (ValueError, OSError) as exc:
             self._poner_estado(textos.t("estado_error", mensaje=str(exc)))
             return
 

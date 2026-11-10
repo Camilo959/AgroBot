@@ -70,6 +70,10 @@ class World:
                 lineas = [linea.strip() for linea in f if linea.strip() != ""]
         except FileNotFoundError:
             raise FileNotFoundError(f"No se encontró el archivo del mundo: {ruta}")
+        except OSError as error:
+            raise OSError(
+                f"No se pudo leer el archivo del mundo '{ruta}': {error}"
+            ) from error
 
         if len(lineas) != cls.FILAS_ESPERADAS:
             raise ValueError(
