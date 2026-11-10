@@ -3,6 +3,12 @@
 Historial de modificaciones del proyecto. Cada entrada indica fecha,
 archivos afectados y descripción del cambio.
 
+> **Nota:** este documento es cronológico y puede contener decisiones que
+> luego fueron reemplazadas. La fuente vigente del comportamiento es
+> `README.md` y `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md` /
+> `docs/CONTEXTO_BUSQUEDA_INFORMADA.md`. En particular, la decisión final
+> sobre ciclos es por rama con clave relajada (sin combustible exacto).
+
 ---
 
 ## 2026-10-29 — Core del proyecto (lógica pura, sin UI ni algoritmos)

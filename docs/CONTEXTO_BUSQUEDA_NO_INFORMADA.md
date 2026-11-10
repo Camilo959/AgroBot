@@ -173,7 +173,13 @@ busqueda_profundidad(problema, limite_nodos=None) -> Resultado
 | `costo: float \| None` | Costo `g` de la solución. Se calcula siempre. `None` solo si no hay solución |
 | `limite_alcanzado: bool` | Si se cortó por `limite_nodos` |
 
-**Confirmado por el profesor:** "profundidad del árbol" = `profundidad_maxima`. Se guardan ambas (`profundidad` y `profundidad_maxima`) por si la UI necesita la otra.
+**Profundidad:** el reporte muestra las dos métricas con etiquetas
+separadas: "Profundidad de la solución" (`profundidad`, número de
+movimientos del camino) y "Profundidad máxima del árbol"
+(`profundidad_maxima`, mayor profundidad entre los nodos creados). La
+documentación previa del profesor confirmó que "profundidad del árbol" =
+`profundidad_maxima`; se conserva esa métrica y se añade la de la
+solución para cubrir también la otra interpretación.
 
 Helpers en `base.py`:
 - `clave_relajada(estado)`.
@@ -222,7 +228,7 @@ Los tres algoritmos evitan ciclos solo por rama; no hay filas ni columnas de mod
 3. Desempate de UCS por orden de creación y orden de operadores arriba, abajo, izquierda, derecha.
 4. Los mundos de prueba son 10x10 y, en los casos de optimalidad, pasillos estrechos similares al ejemplo.
 5. El corte por `limite_nodos` con mensaje de "límite alcanzado" es aceptable.
-6. "Profundidad del árbol" = `profundidad_maxima`.
+6. "Profundidad del árbol" = `profundidad_maxima`. La UI muestra además la "Profundidad de la solución" (`profundidad`).
 7. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo se determina por el combustible previo).
 8. No hay bajada voluntaria de la avioneta.
 

@@ -1,8 +1,9 @@
-# Borrador: heurística B, Avara y A* (AgroBot)
+# Informe: heurística B, Avara y A* (AgroBot)
 
-> **Borrador para revisión del equipo.** Las cifras de la tabla se tomaron
-> de la salida real de `scripts/comparar_algoritmos.py` sobre
-> `worlds/Prueba1.txt`.
+**Proyecto 1 de Inteligencia Artificial — Universidad del Valle.**
+
+> Las cifras de la tabla se tomaron de la salida real de
+> `scripts/comparar_algoritmos.py` sobre `worlds/Prueba1.txt`.
 
 ## 1. Idea de la heurística
 
@@ -98,13 +99,17 @@ violaciones.
 
 Salida real de `scripts/comparar_algoritmos.py`:
 
-| Algoritmo | Expandidos | Generados | Profundidad | Prof. máx. | Costo |
+| Algoritmo | Expandidos | Generados | Prof. solución | Prof. máx. | Costo |
 |---|---:|---:|---:|---:|---:|
 | BFS | 5251 | 6423 | 30 | 31 | 30.0 |
 | UCS | 9561 | 12335 | 38 | 40 | 25.0 |
 | DFS | 81 | 105 | 68 | 76 | 58.0 |
 | Avara | 39 | 60 | 32 | 32 | 32.0 |
 | A* | 770 | 1036 | 40 | 40 | 25.0 |
+
+La columna “Prof. solución” es la profundidad del nodo meta (número de
+movimientos del camino); “Prof. máx.” es la mayor profundidad alcanzada
+en el árbol de búsqueda.
 
 Lectura:
 

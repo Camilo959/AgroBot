@@ -196,12 +196,12 @@ Toda llamada a un algoritmo en las pruebas lleva un `limite_nodos` razonable (po
 
 - Habilitar "Avara" y "A*" en el selector "Informada" (quitar la leyenda "próximamente"). No cambies el diseño visual.
 - `ui/runner.py`: el proceso hijo construye `Problema`, `HeuristicaAgroBot(world)` y llama a la función correspondiente, con `limite_nodos` como hoy. No pases la heurística entre procesos.
-- Reporte (`construir_reporte`): **costo solo para Costo uniforme y A\***; Avara no lo muestra. Los demás campos (expandidos, profundidad = `profundidad_maxima`, tiempo) igual que siempre.
+- Reporte (`construir_reporte`): **costo solo para Costo uniforme y A\***; Avara no lo muestra. Se muestran nodos expandidos, nodos generados, profundidad de la solución (`profundidad`), profundidad máxima del árbol (`profundidad_maxima`) y tiempo.
 - Actualiza `ui/textos.py`, `ui/README_UI.md` y las pruebas de lógica de la UI (reporte de Avara sin costo y de A* con costo).
 
-## 8. Borrador del informe (`docs/informe/heuristica.md`)
+## 8. Informe final (`docs/informe/heuristica.md`)
 
-El enunciado exige: explicación de la heurística y justificación de su admisibilidad. Genera un **borrador** (a revisar por el equipo) con:
+El enunciado exige: explicación de la heurística y justificación de su admisibilidad. El informe final contiene:
 
 1. Descripción del problema relajado y de la idea (qué estima `h` y por qué: costo mínimo por movimiento 0.5 y longitud mínima del recorrido).
 2. La definición de la sección 4.1, con el ejemplo numérico de la 4.2.

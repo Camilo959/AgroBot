@@ -14,7 +14,7 @@ agrobot/
 │              runner.py, animator.py, report_panel.py, sesion.py,
 │              assets_loader.py, screens/, assets/)
 ├── scripts/   (comparar_no_informada.py, comparar_algoritmos.py)
-├── worlds/    (Prueba1.txt, ...)
+├── worlds/    (Prueba1.txt)
 ├── tests/     (test_world.py, test_problem.py, test_algorithms.py,
 │              test_heuristics.py, test_ui_logica.py)
 └── docs/      (informe/, CAMBIOS.md, CONTEXTO_BUSQUEDA_NO_INFORMADA.md,
@@ -29,16 +29,16 @@ Verificado con Python 3.12.3 en Windows.
 Crear e instalar dependencias:
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 Activar el entorno:
 
 | Sistema | Comando |
 |---|---|
-| Windows PowerShell | `.\venv\Scripts\Activate.ps1` |
-| Windows CMD | `venv\Scripts\activate.bat` |
-| Linux / macOS (bash/zsh) | `source venv/bin/activate` |
+| Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
+| Windows CMD | `.venv\Scripts\activate.bat` |
+| Linux / macOS (bash/zsh) | `source .venv/bin/activate` |
 
 Instalar dependencias y correr pruebas:
 
@@ -48,7 +48,7 @@ pytest -v
 ```
 
 > Nota: en este equipo (Windows) el shell es Git Bash, por lo que los
-> comandos se invocan como `./venv/Scripts/python.exe -m pytest -v`.
+> comandos se invocan como `./.venv/Scripts/python.exe -m pytest -v`.
 > Detecta tu SO con `python -c "import platform; print(platform.system())"`.
 
 ## Cómo ejecutar la aplicación
@@ -86,21 +86,21 @@ Customtkinter y pygame no comparten proceso:
 | Esc | Cerrar la animación |
 
 El panel lateral de la animación muestra, arriba, el **resumen de la
-búsqueda** (algoritmo, estado, nodos expandidos, profundidad del árbol,
-tiempo, pasos, costo cuando aplica y mundo) y, abajo, el estado en vivo
-(paso, fertilizante, combustible, costo acumulado) más la leyenda de
-controles. La velocidad, el ancho del panel y los colores se configuran
-en `ui/theme.py`.
+búsqueda** (algoritmo, estado, nodos expandidos, nodos generados,
+profundidad de la solución, profundidad máxima del árbol, tiempo, costo
+cuando aplica y mundo) y, abajo, el estado en vivo (paso, fertilizante,
+combustible, costo acumulado) más la leyenda de controles. La velocidad,
+el ancho del panel y los colores se configuran en `ui/theme.py`.
 
 ### Flujo de resultados
 
 Al pulsar **Ejecutar** se calcula la búsqueda y se abre directamente la
-animación, sin mostrar el reporte. Al llegar a la meta aparece en el HUD
-el botón **"Ver Resultados Detallados"**; el reporte solo se abre al
-pulsarlo. Si la animación se cierra antes de la meta, el botón aparece en
-la pantalla principal. Cuando no hay solución o se alcanza el límite de
-nodos (no hay animación), el botón aparece de inmediato en la pantalla
-principal.
+animación. El HUD ya muestra el reporte resumido desde el inicio. Al
+llegar a la meta aparece además el botón **"Ver Resultados Detallados"**;
+la pantalla de resumen se abre al pulsarlo. Si la animación se cierra
+antes de la meta, el botón aparece en la pantalla principal. Cuando no
+hay solución o se alcanza el límite de nodos (no hay animación), el botón
+aparece de inmediato en la pantalla principal.
 
 ## Supuestos de diseño
 
@@ -121,9 +121,11 @@ principal.
    solo el muro (1) bloquea. Una vez leído el mundo, la casilla del robot
    cuenta como libre.
 6. **Orden fijo de operadores.** Arriba, abajo, izquierda, derecha. Los
-   ciclos se detectan sobre el **estado completo** (posición + fertilizante
-   + combustible + pendientes), así el agente puede volver a una casilla si
-   algo cambió (abordó la avioneta, recargó fertilizante o trató un cultivo).
+   ciclos se detectan solo por rama con la **clave relajada**
+   `(posición, fertilizante, cultivos pendientes, fase de la avioneta)`:
+   no se compara el combustible exacto. Así el agente puede volver a una
+   casilla si algo cambió (abordó la avioneta, recargó fertilizante o trató
+   un cultivo), pero el vaivén dentro de la avioneta sí cuenta como ciclo.
 
 ## Alcance actual (core + búsqueda no informada e informada + UI)
 
@@ -142,7 +144,9 @@ principal.
 - `ui/`: tema centralizado, pantallas, tablero, runner de procesos,
   reporte puro y animación pygame. Ver `ui/README_UI.md`.
 
-Fuera de alcance: cambios en `core/` y rediseño visual.
+Estado: el proyecto cubre lectura y visualización del mundo, los cinco
+algoritmos, animación, reporte y búsquedas cancelables en procesos
+aparte. La arquitectura general se mantiene estable para la entrega.
 
 ## Algoritmos de búsqueda no informada
 
@@ -186,3 +190,28 @@ Fuera de alcance: cambios en `core/` y rediseño visual.
 - A* es óptimo con heurística admisible; Avara no garantiza optimalidad.
 - Comparación de los cinco algoritmos sobre `Prueba1.txt`:
   `python scripts/comparar_algoritmos.py`.
+
+## Checklist de entrega
+
+Desde la raíz del proyecto y con el entorno virtual activo:
+
+```bash
+# Pruebas automáticas
+pytest -v
+
+# Comparación de los cinco algoritmos sobre Prueba1
+python scripts/comparar_algoritmos.py
+
+# Aplicación gráfica
+python main.py
+```
+
+Verificación manual mínima:
+
+1. Cargar `worlds/Prueba1.txt` y ejecutar los cinco algoritmos.
+2. Confirmar que la animación y el HUD muestran el reporte.
+3. Confirmar que el costo solo aparece en Costo uniforme y A*.
+4. Probar un mundo sin solución y una búsqueda que alcance el límite.
+5. Probar la carga de un archivo inválido.
+
+El informe de heurística está en `docs/informe/heuristica.md`.
