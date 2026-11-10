@@ -102,6 +102,20 @@ antes de la meta, el botón aparece en la pantalla principal. Cuando no
 hay solución o se alcanza el límite de nodos (no hay animación), el botón
 aparece de inmediato en la pantalla principal.
 
+La pantalla **Resumen** separa la información en dos bloques:
+
+- **Detalle de la búsqueda:** algoritmo, tipo, estado, nodos expandidos,
+  nodos generados, profundidad máxima, tiempo, nodos por segundo y límite
+  de nodos.
+- **Detalle de la solución:** profundidad de la solución, cultivos
+  tratados, pasos con costo 1.0 y 0.5, posición final, fertilizante final
+  y combustible final. Para Costo uniforme y A* añade además el costo
+  total y el costo desglosado por tipo de paso.
+
+El desglose de costo se muestra solo para Costo uniforme y A*, como pide
+el enunciado. Los demás algoritmos sí muestran cuántos pasos hicieron con
+cada costo, pero no el costo monetario.
+
 ## Supuestos de diseño
 
 1. **Costo al abordar la avioneta.** El movimiento que llega a la casilla de

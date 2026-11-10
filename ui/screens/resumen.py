@@ -13,6 +13,7 @@ from ui.componentes import (
     EtiquetaPequena,
     FilaClaveValor,
     Separador,
+    Subtitulo,
     Tarjeta,
     Titulo,
 )
@@ -52,8 +53,19 @@ class ResumenScreen(ctk.CTkFrame):
 
         Separador(interior).pack(fill="x", pady=theme.PADDING_CHICO)
 
-        self._frame_filas = Contenedor(interior)
-        self._frame_filas.pack(fill="x")
+        self._columnas = Contenedor(interior)
+        self._columnas.pack(fill="x")
+        self._columnas.grid_columnconfigure(0, weight=1, uniform="detalle")
+        self._columnas.grid_columnconfigure(1, weight=1, uniform="detalle")
+
+        self._frame_busqueda = Contenedor(self._columnas)
+        self._frame_busqueda.grid(
+            row=0, column=0, sticky="nsew", padx=(0, theme.PADDING)
+        )
+        self._frame_solucion = Contenedor(self._columnas)
+        self._frame_solucion.grid(
+            row=0, column=1, sticky="nsew", padx=(theme.PADDING, 0)
+        )
 
         Separador(interior).pack(fill="x", pady=theme.PADDING)
 
@@ -75,12 +87,24 @@ class ResumenScreen(ctk.CTkFrame):
             command=lambda: self.app.ir_a("juego"),
         ).grid(row=0, column=1, padx=4, sticky="ew")
 
-    def _limpiar_filas(self) -> None:
-        for widget in self._frame_filas.winfo_children():
-            widget.destroy()
+    def _limpiar_columnas(self) -> None:
+        for frame in (self._frame_busqueda, self._frame_solucion):
+            for widget in frame.winfo_children():
+                widget.destroy()
+
+    def _agregar_titulo(self, frame: object, texto: str) -> None:
+        Subtitulo(
+            frame, text=texto, anchor="w", justify="left", wraplength=380
+        ).pack(anchor="w", pady=(0, theme.PADDING_CHICO))
+
+    def _agregar_filas(
+        self, frame: object, filas: list[tuple[str, str]]
+    ) -> None:
+        for clave, valor in filas:
+            FilaClaveValor(frame, clave, valor).pack(fill="x", pady=2)
 
     def _actualizar(self) -> None:
-        self._limpiar_filas()
+        self._limpiar_columnas()
         resultado = self.sesion.resultado
 
         if resultado is None:
@@ -89,10 +113,34 @@ class ResumenScreen(ctk.CTkFrame):
             self.boton_animacion.grid_remove()
             return
 
-        for clave, valor in report_panel.construir_reporte_completo(
-            resultado, self.sesion.algoritmo, self.sesion.ruta_mundo
-        ):
-            FilaClaveValor(self._frame_filas, clave, valor).pack(fill="x", pady=2)
+        self._agregar_titulo(
+            self._frame_busqueda, textos.t("detalle_busqueda_titulo")
+        )
+        self._agregar_filas(
+            self._frame_busqueda,
+            report_panel.construir_detalle_busqueda(
+                resultado,
+                self.sesion.algoritmo,
+                self.sesion.tipo_busqueda,
+                self.sesion.limite_nodos,
+                self.sesion.ruta_mundo,
+            ),
+        )
+
+        self._agregar_titulo(
+            self._frame_solucion, textos.t("detalle_solucion_titulo")
+        )
+        filas_solucion = report_panel.construir_detalle_solucion(
+            resultado, self.sesion.algoritmo, self.sesion.world
+        )
+        if filas_solucion:
+            self._agregar_filas(self._frame_solucion, filas_solucion)
+        else:
+            FilaClaveValor(
+                self._frame_solucion,
+                textos.t("detalle_solucion_no_disponible"),
+                "—",
+            ).pack(fill="x", pady=2)
 
         if resultado.exito:
             self.lbl_estado.configure(text=textos.t("resumen_exito"))

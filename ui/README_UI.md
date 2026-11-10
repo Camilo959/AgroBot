@@ -131,6 +131,21 @@ resumen:
 4. La animación lanzada desde el resumen ("Ver animación / Repetir
    animación") no muestra ese botón: el reporte ya está abierto.
 
+## Resumen detallado
+
+La pantalla `Resumen` no usa el reporte compacto del HUD. Se organiza en
+dos columnas con `report_panel.construir_detalle_busqueda` y
+`report_panel.construir_detalle_solucion`:
+
+- **Búsqueda:** algoritmo, tipo, estado, expandidos, generados,
+  profundidad máxima, tiempo, nodos por segundo y límite.
+- **Solución:** profundidad de la solución, cultivos tratados, pasos con
+  costo 1.0 y 0.5, posición final, fertilizante final y combustible final.
+
+El costo total y el costo desglosado por tipo de paso se muestran solo
+para Costo uniforme y A*. El HUD de la animación conserva el reporte
+compacto de `construir_reporte_completo`.
+
 ## Notas
 
 - La búsqueda y la animación corren en procesos `spawn`; las funciones

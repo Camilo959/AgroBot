@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from PIL import Image
 
 from algoritmos.base import Resultado
@@ -178,3 +180,105 @@ def test_reporte_sin_costo_para_avara():
     )
     assert textos.t("reporte_costo") not in filas
     assert filas[textos.t("reporte_algoritmo")] == "Avara"
+
+
+def _resultado_con_avioneta() -> Resultado:
+    """Resultado de 3 pasos: uno de costo 1.0 y dos de costo 0.5."""
+    estados = [
+        Estado((0, 0), 0, -1, frozenset({(0, 1)})),
+        Estado((0, 1), 0, 30, frozenset({(0, 1)})),
+        Estado((0, 2), 0, 29, frozenset({(0, 1)})),
+        Estado((0, 3), 0, 0, frozenset()),
+    ]
+    return Resultado(
+        exito=True,
+        camino=["derecha", "derecha", "derecha"],
+        estados=estados,
+        nodos_expandidos=10,
+        nodos_generados=15,
+        profundidad=3,
+        profundidad_maxima=4,
+        tiempo=0.5,
+        costo=2.0,
+    )
+
+
+def test_pasos_y_costos_por_tipo():
+    resultado = _resultado_con_avioneta()
+    assert report_panel.pasos_por_costo(resultado) == (1, 2)
+    assert report_panel.costo_por_tipo(resultado) == (1.0, 1.0)
+
+
+def test_detalle_busqueda_incluye_tipo_nodos_segundo_y_limite():
+    filas = dict(
+        report_panel.construir_detalle_busqueda(
+            _resultado_con_avioneta(),
+            "costo_uniforme",
+            "no_informada",
+            500_000,
+            "worlds/Prueba1.txt",
+        )
+    )
+    assert filas[textos.t("detalle_tipo_busqueda")] == (
+        textos.t("tipo_no_informada")
+    )
+    assert filas[textos.t("detalle_nodos_segundo")] == "20.0"
+    assert filas[textos.t("detalle_limite_usado")] == "500000"
+    assert filas[textos.t("reporte_mundo")] == "Prueba1.txt"
+
+
+def test_detalle_solucion_muestra_costos_solo_para_costo_uniforme_y_astar():
+    resultado = _resultado_con_avioneta()
+    mundo = SimpleNamespace(cultivos=frozenset({(0, 1)}))
+
+    for algoritmo in ("costo_uniforme", "astar"):
+        filas = dict(
+            report_panel.construir_detalle_solucion(
+                resultado, algoritmo, mundo
+            )
+        )
+        assert filas[textos.t("reporte_costo")] == "2.0"
+        assert filas[textos.t("detalle_pasos_costo_uno")] == "1"
+        assert filas[textos.t("detalle_pasos_costo_media")] == "2"
+        assert filas[textos.t("detalle_costo_pasos_uno")] == "1.0"
+        assert filas[textos.t("detalle_costo_pasos_media")] == "1.0"
+
+
+def test_detalle_solucion_no_muestra_costos_en_otros_algoritmos():
+    resultado = _resultado_con_avioneta()
+    mundo = SimpleNamespace(cultivos=frozenset({(0, 1)}))
+
+    for algoritmo in ("amplitud", "profundidad", "avara"):
+        filas = dict(
+            report_panel.construir_detalle_solucion(
+                resultado, algoritmo, mundo
+            )
+        )
+        assert textos.t("reporte_costo") not in filas
+        assert textos.t("detalle_costo_pasos_uno") not in filas
+        assert textos.t("detalle_costo_pasos_media") not in filas
+        assert filas[textos.t("detalle_pasos_costo_uno")] == "1"
+        assert filas[textos.t("detalle_pasos_costo_media")] == "2"
+
+
+def test_detalle_solucion_incluye_estado_final_y_cultivos():
+    filas = dict(
+        report_panel.construir_detalle_solucion(
+            _resultado_con_avioneta(),
+            "costo_uniforme",
+            SimpleNamespace(cultivos=frozenset({(0, 1)})),
+        )
+    )
+    assert filas[textos.t("detalle_cultivos_tratados")] == "1 / 1"
+    assert filas[textos.t("detalle_posicion_final")] == "(0, 3)"
+    assert filas[textos.t("detalle_fertilizante_final")] == "0 / 2"
+    assert filas[textos.t("detalle_combustible_final")] == (
+        textos.t("detalle_combustible_agotada")
+    )
+
+
+def test_detalle_solucion_vacio_si_no_hay_exito():
+    resultado = Resultado(exito=False, nodos_expandidos=3)
+    assert report_panel.construir_detalle_solucion(
+        resultado, "costo_uniforme", SimpleNamespace(cultivos=frozenset())
+    ) == []
