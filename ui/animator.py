@@ -114,8 +114,6 @@ def _dibujar_tablero(pygame: object, pantalla: object, world: World,
         if theme.SOMBRA_AVIONETA:
             pantalla.blit(sprites["__sombra__"], (x, y + int(tam * 0.08)))
         pantalla.blit(sprites["avioneta"], (x, y))
-        if en_vuelo:
-            pantalla.blit(sprites["robot"], (x, y))
 
     if not en_vuelo:
         fila, columna = estado.pos
