@@ -2,8 +2,8 @@
 
 **Proyecto 1 de Inteligencia Artificial — Universidad del Valle.**
 
-> Las cifras de la tabla se tomaron de la salida real de
-> `scripts/comparar_algoritmos.py` sobre `worlds/Prueba1.txt`.
+> Las cifras de la tabla se obtuvieron ejecutando los cinco algoritmos
+> sobre `worlds/Prueba1.txt`.
 
 ## 1. Idea de la heurística
 
@@ -16,9 +16,9 @@ desde un estado. Se construye relajando el problema:
   cuando el robot va en la avioneta).
 
 Con esas relajaciones se obtiene una cota inferior del costo real, es
-decir, una heurística **admisible**. El ejemplo del profesor propone
-“Manhattan / 2”; aquí se adapta a varios cultivos y al depósito usando un
-árbol de expansión mínima (MST).
+decir, una heurística **admisible**. La idea de usar Manhattan dividido
+entre 2 se adapta aquí a varios cultivos y al depósito usando un árbol de
+expansión mínima (MST).
 
 ## 2. Definición
 
@@ -97,7 +97,7 @@ violaciones.
 
 ## 4. Comparación sobre `Prueba1.txt`
 
-Salida real de `scripts/comparar_algoritmos.py`:
+Resultados sobre `Prueba1.txt`:
 
 | Algoritmo | Expandidos | Generados | Prof. solución | Prof. máx. | Costo |
 |---|---:|---:|---:|---:|---:|
@@ -135,8 +135,7 @@ usar solo el cultivo más lejano (admisible pero mucho más débil).
 ## 6. Supuestos y limitaciones
 
 - Heurística B, la misma para Avara y A*.
-- Desempate por orden de creación y ciclos solo por rama (confirmados por
-  el profesor).
+- Desempate por orden de creación y ciclos solo por rama.
 - Test de meta al extraer; el nodo meta cuenta como expandido.
 - Clave de ciclo relajada: ignora el combustible exacto para que el
   vaivén dentro de la avioneta cuente como ciclo.

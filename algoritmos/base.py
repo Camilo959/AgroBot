@@ -3,7 +3,7 @@
 Contiene el `Resultado`, la clave de ciclo relajada, la detección de
 ciclos en rama y los constructores de `Resultado` con y sin solución.
 
-Convenciones (ver `docs/CONTEXTO_BUSQUEDA_NO_INFORMADA.md`):
+Convenciones:
     - El test de meta se hace al extraer el nodo; el nodo meta cuenta
       como expandido.
     - Los ciclos se detectan solo por rama: se comparan los ancestros del

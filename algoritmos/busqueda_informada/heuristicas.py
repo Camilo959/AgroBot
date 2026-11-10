@@ -12,8 +12,9 @@ Idea general:
       nunca sobreestiman) y con un árbol de expansión mínima (MST) sobre
       los puntos que el robot todavía debe visitar.
 
-El 0.5 sigue la idea del ejemplo del profesor: "Manhattan / 2 para que
-sea admisible" (d.187), adaptada a varios cultivos y al depósito.
+El factor 0.5 se usa porque es el costo mínimo posible de un movimiento:
+la avioneta reduce el costo a la mitad. Así, h = 0.5 * L nunca sobreestima
+el costo real, incluso al considerar varios cultivos y el depósito.
 """
 
 from __future__ import annotations

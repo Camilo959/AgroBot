@@ -1,9 +1,9 @@
 """Búsqueda en profundidad evitando ciclos (DFS) para el AgroBot.
 
 Estructura: pila (lista con `append`/`pop`), iterativo. Solo se revisan
-los ancestros de la rama actual, como define el profesor. Los hijos se
-apilan en orden inverso para que el primer operador quede arriba de la
-pila. No es óptimo y puede dar soluciones largas: es lo esperado.
+los ancestros de la rama actual. Los hijos se apilan en orden inverso para
+que el primer operador quede arriba de la pila. No es óptimo y puede dar
+soluciones largas: es lo esperado.
 """
 
 from __future__ import annotations

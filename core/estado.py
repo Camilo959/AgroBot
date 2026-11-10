@@ -1,6 +1,6 @@
 """Estado del AgroBot.
 
-Supuestos de diseño (ver README):
+Supuestos de diseño:
     3. `combustible`: -1 = aún no ha abordado la avioneta,
        1..30 = en la avioneta con ese combustible restante,
        0 = avioneta agotada. Mientras `combustible > 0`, cada movimiento

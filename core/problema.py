@@ -1,6 +1,6 @@
 """Problema de búsqueda del AgroBot: estado inicial, meta y sucesores.
 
-Supuestos de diseño (ver README):
+Supuestos de diseño:
     1. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo
        se determina por el combustible ANTES de moverse). El 0.5 aplica desde
        el movimiento siguiente, y el combustible pasa a 30 al subirse.

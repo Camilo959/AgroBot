@@ -3,8 +3,7 @@
 Estructura: cola de prioridad (`heapq`) con prioridad `g(n)`. Completo y
 óptimo. El test de meta va al extraer: hacerlo al generar perdería la
 optimalidad. Los ciclos se detectan solo por rama con la clave relajada.
-Desempate por orden de creación (FIFO), como supuesto documentado (el
-profesor no lo especifica).
+Desempate por orden de creación (FIFO) entre nodos con el mismo costo `g`.
 """
 
 from __future__ import annotations

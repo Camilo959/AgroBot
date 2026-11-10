@@ -1,32 +1,35 @@
 # AgroBot — Proyecto 1 de Inteligencia Artificial (Univalle)
 
 Agente que recorre una cuadrícula de 10x10 y debe aplicar fertilizante a
-todos los cultivos secos. Stack: Python, pygame y customtkinter.
+todos los cultivos secos. El entorno incluye obstáculos, un depósito de
+fertilizante y una avioneta con combustible limitado. Stack: Python,
+pygame y customtkinter.
 
-## Estructura
+## Contenido de la entrega
 
 ```text
-agrobot/
-├── main.py, requirements.txt, README.md, pytest.ini
-├── core/      (mundo.py, estado.py, problema.py, nodo.py)
-├── algoritmos/ (base.py, busqueda_no_informada/, busqueda_informada/)
-├── ui/        (app.py, theme.py, textos.py, componentes.py, board_view.py,
-│              runner.py, animator.py, report_panel.py, sesion.py,
-│              assets_loader.py, screens/, assets/)
-├── scripts/   (comparar_no_informada.py, comparar_algoritmos.py)
-├── worlds/    (Prueba1.txt)
-├── tests/     (test_world.py, test_problem.py, test_algorithms.py,
-│              test_heuristics.py, test_ui_logica.py)
-└── docs/      (informe/, CAMBIOS.md, CONTEXTO_BUSQUEDA_NO_INFORMADA.md,
-               CONTEXTO_BUSQUEDA_INFORMADA.md)
+AgroBot/
+├── main.py
+├── requirements.txt
+├── README.md
+├── core/
+├── algoritmos/
+├── ui/
+├── worlds/
+│   └── Prueba1.txt
+└── docs/
+    └── informe/
+        └── heuristica.md
 ```
+
+## Requisitos
+
+- Python 3.10 o superior.
+- Dependencias: `pygame`, `customtkinter` y `pillow`.
 
 ## Entorno virtual
 
-Python requerido: **3.10 o superior** (se usa `X | None` y `tuple[int, int]`).
-Verificado con Python 3.12.3 en Windows.
-
-Crear e instalar dependencias:
+Crear el entorno e instalar dependencias:
 
 ```bash
 python -m venv .venv
@@ -40,42 +43,25 @@ Activar el entorno:
 | Windows CMD | `.venv\Scripts\activate.bat` |
 | Linux / macOS (bash/zsh) | `source .venv/bin/activate` |
 
-Instalar dependencias y correr pruebas:
+Instalar dependencias:
 
 ```bash
 pip install -r requirements.txt
-pytest -v
 ```
 
-> Nota: en este equipo (Windows) el shell es Git Bash, por lo que los
-> comandos se invocan como `./.venv/Scripts/python.exe -m pytest -v`.
-> Detecta tu SO con `python -c "import platform; print(platform.system())"`.
+> Nota: en Windows con Git Bash los comandos se invocan como
+> `./.venv/Scripts/python.exe ...`.
 
-## Cómo ejecutar la aplicación
+## Cómo ejecutar
 
 ```bash
 python main.py
 ```
 
-La interfaz tiene dos pantallas: la **principal** (cabecera de inicio,
-carga de mundo, elección de algoritmo, ejecución y tablero) y el
-**Resumen** (reporte y acceso a la animación). La portada anterior se
-fusionó con la pantalla principal. En la pantalla principal, "Informada"
-habilita Avara y A*.
+La interfaz permite cargar un mundo, elegir el tipo de búsqueda y el
+algoritmo, ejecutar la búsqueda y ver la animación y el reporte.
 
-### Arquitectura de procesos
-
-Customtkinter y pygame no comparten proceso:
-
-1. La ventana principal (customtkinter) no importa pygame.
-2. La búsqueda corre en un proceso hijo con `multiprocessing` (contexto
-   `spawn`), lanzada desde `ui/runner.py`. Se puede cancelar con
-   `terminate()` y la interfaz consulta el resultado con `after(...)`.
-3. La animación (pygame) corre en otro proceso `spawn`
-   (`ui/animator.py`). Cerrar su ventana no cierra la principal.
-4. Al cerrar la ventana principal se terminan los procesos hijos vivos.
-
-### Controles de la animación
+## Controles de la animación
 
 | Tecla | Acción |
 |---|---|
@@ -85,82 +71,52 @@ Customtkinter y pygame no comparten proceso:
 | R | Reiniciar |
 | Esc | Cerrar la animación |
 
-El panel lateral de la animación muestra, arriba, el **resumen de la
-búsqueda** (algoritmo, estado, nodos expandidos, nodos generados,
-profundidad de la solución, profundidad máxima del árbol, tiempo, costo
-cuando aplica y mundo) y, abajo, el estado en vivo (paso, fertilizante,
-combustible, costo acumulado) más la leyenda de controles. La velocidad,
-el ancho del panel y los colores se configuran en `ui/theme.py`.
+## Flujo de resultados
 
-### Flujo de resultados
-
-Al pulsar **Ejecutar** se calcula la búsqueda y se abre directamente la
-animación. El HUD ya muestra el reporte resumido desde el inicio. Al
-llegar a la meta aparece además el botón **"Ver Resultados Detallados"**;
-la pantalla de resumen se abre al pulsarlo. Si la animación se cierra
-antes de la meta, el botón aparece en la pantalla principal. Cuando no
-hay solución o se alcanza el límite de nodos (no hay animación), el botón
-aparece de inmediato en la pantalla principal.
+Al pulsar **Ejecutar** se calcula la búsqueda y se abre la animación. El
+HUD muestra un resumen de la búsqueda desde el inicio. Al llegar a la meta
+aparece el botón **Ver Resultados Detallados**, que abre la pantalla de
+resumen. Si la animación se cierra antes, el botón aparece en la pantalla
+principal. Cuando no hay solución o se alcanza el límite de nodos, el
+botón aparece de inmediato.
 
 La pantalla **Resumen** separa la información en dos bloques:
 
-- **Detalle de la búsqueda:** algoritmo, tipo, estado, nodos expandidos,
-  nodos generados, profundidad máxima, tiempo, nodos por segundo y límite
-  de nodos.
-- **Detalle de la solución:** profundidad de la solución, cultivos
-  tratados, pasos con costo 1.0 y 0.5, posición final, fertilizante final
-  y combustible final. Para Costo uniforme y A* añade además el costo
-  total y el costo desglosado por tipo de paso.
+- **Búsqueda:** algoritmo, tipo, estado, nodos expandidos, nodos
+  generados, profundidad máxima, tiempo, nodos por segundo y límite de
+  nodos.
+- **Solución:** profundidad de la solución, cultivos tratados, pasos con
+  costo 1.0 y 0.5, posición final, fertilizante final y combustible final.
 
-El desglose de costo se muestra solo para Costo uniforme y A*, como pide
-el enunciado. Los demás algoritmos sí muestran cuántos pasos hicieron con
-cada costo, pero no el costo monetario.
+El costo total y el costo desglosado por tipo de paso se muestran solo
+para Costo uniforme y A*. Los demás algoritmos muestran cuántos pasos
+hicieron con cada costo, pero no el costo monetario.
 
 ## Supuestos de diseño
 
-1. **Costo al abordar la avioneta.** El movimiento que llega a la casilla de
-   la avioneta cuesta 1, porque el costo se determina por el combustible
-   *antes* de moverse. El 0.5 aplica desde el movimiento siguiente, y el
-   combustible pasa a 30 al subirse.
-2. **Sin bajada voluntaria.** Una vez abordada, el robot va en la avioneta
-   hasta agotar el combustible. Después, pasar por su casilla no hace nada.
-3. **Codificación del combustible.** `-1` = aún no ha abordado, `1..30` = en
-   la avioneta con ese combustible restante, `0` = agotada. Mientras
-   `combustible > 0`, cada movimiento cuesta 0.5 y resta 1.
-4. **Tratamiento automático y obligatorio.** Al llegar a un cultivo seco con
-   fertilizante > 0 se trata de inmediato (fertilizante −1 y el cultivo deja
-   de estar pendiente). Sin fertilizante, el robot pasa por encima y el
-   cultivo sigue seco. El robot puede tratar estando en la avioneta.
+1. **Costo al abordar la avioneta.** El movimiento que llega a la casilla
+   de la avioneta cuesta 1, porque el costo se determina por el
+   combustible antes de moverse. El 0.5 aplica desde el movimiento
+   siguiente, y el combustible pasa a 30 al subirse.
+2. **Sin bajada voluntaria.** Una vez abordada, la avioneta se mueve con
+   el robot hasta agotar el combustible. Después, pasar por su casilla no
+   hace nada.
+3. **Combustible.** `-1` significa que aún no se abordó la avioneta,
+   `1..30` que está en uso con ese combustible restante y `0` que ya se
+   agotó. Mientras `combustible > 0`, cada movimiento cuesta 0.5 y resta 1.
+4. **Tratamiento automático y obligatorio.** Al llegar a un cultivo seco
+   con fertilizante disponible se trata de inmediato: se consume una
+   unidad y el cultivo deja de estar pendiente. Sin fertilizante, el
+   cultivo sigue seco. El tratamiento también ocurre en la avioneta.
 5. **Casillas transitables.** Las casillas 2, 3, 4 y 5 son transitables;
-   solo el muro (1) bloquea. Una vez leído el mundo, la casilla del robot
-   cuenta como libre.
+   solo el muro (1) bloquea. La casilla inicial del robot cuenta como
+   libre.
 6. **Orden fijo de operadores.** Arriba, abajo, izquierda, derecha. Los
-   ciclos se detectan solo por rama con la **clave relajada**
+   ciclos se detectan solo por rama con la clave relajada
    `(posición, fertilizante, cultivos pendientes, fase de la avioneta)`:
    no se compara el combustible exacto. Así el agente puede volver a una
-   casilla si algo cambió (abordó la avioneta, recargó fertilizante o trató
-   un cultivo), pero el vaivén dentro de la avioneta sí cuenta como ciclo.
-
-## Alcance actual (core + búsqueda no informada e informada + UI)
-
-- `core/mundo.py`: clase `World` con `desde_archivo`, `es_libre` y `__str__`.
-- `core/estado.py`: `Estado` como `@dataclass(frozen=True)` (hasheable).
-- `core/problema.py`: `Problema` con `estado_inicial`, `es_meta` y
-  `sucesores` (lista de `(accion, estado_nuevo, costo)`).
-- `core/nodo.py`: `Nodo` con `reconstruir_camino`, `reconstruir_estados` y
-  `__lt__` (desempate por `g` y orden de creación) para usarlo en `heapq`.
-- `algoritmos/base.py`: `Resultado`, claves de ciclo, detección en rama.
-- `algoritmos/busqueda_no_informada/`: `amplitud.py`, `costo_uniforme.py`
-  y `profundidad.py`.
-- `algoritmos/busqueda_informada/heuristicas.py`: heurística B
-  (Manhattan + MST).
-- `algoritmos/busqueda_informada/`: `avara.py` y `a_estrella.py`.
-- `ui/`: tema centralizado, pantallas, tablero, runner de procesos,
-  reporte puro y animación pygame. Ver `ui/README_UI.md`.
-
-Estado: el proyecto cubre lectura y visualización del mundo, los cinco
-algoritmos, animación, reporte y búsquedas cancelables en procesos
-aparte. La arquitectura general se mantiene estable para la entrega.
+   casilla si algo cambió, pero el vaivén dentro de la avioneta cuenta
+   como ciclo.
 
 ## Algoritmos de búsqueda no informada
 
@@ -168,22 +124,17 @@ aparte. La arquitectura general se mantiene estable para la entrega.
 |---|---|---|
 | Amplitud (BFS) | `busqueda_amplitud` | cola FIFO (`deque`) |
 | Costo uniforme (UCS) | `busqueda_costo_uniforme` | `heapq` por `g` |
-| Profundidad (DFS) | `busqueda_profundidad` | pila (iterativo) |
+| Profundidad (DFS) | `busqueda_profundidad` | pila iterativa |
 
-- **Test de meta al extraer** el nodo (nunca al generar); el meta cuenta
-  como expandido.
-- **Ciclos solo por rama:** se revisan los ancestros del camino actual
-  (incluido el padre), como define el profesor. No hay conjunto compartido
-  de estados cerrados ni parámetro de modo.
-- **Clave relajada** (sin el combustible exacto): evita que el vaivén
-  `A → B → A` dentro de la avioneta cuente como ciclo, y permite los
-  regresos que autoriza el enunciado.
-- **`limite_nodos`**: máximo de nodos a expandir; al alcanzarlo devuelve
+- El test de meta se hace al extraer el nodo; el nodo meta cuenta como
+  expandido.
+- Los ciclos se revisan solo por rama, comparando los ancestros del nodo
+  actual.
+- La clave de ciclo es relajada: no incluye el combustible exacto.
+- `limite_nodos` corta la búsqueda si crece demasiado y devuelve
   `exito=False` con `limite_alcanzado=True`.
-- **Limitación:** en mundos muy abiertos la búsqueda por rama puede crecer
-  exponencialmente y alcanzar el límite de nodos.
-- Comparación sobre `Prueba1.txt`:
-  `python scripts/comparar_no_informada.py`.
+- En mundos muy abiertos la búsqueda por rama puede crecer
+  exponencialmente y alcanzar ese límite.
 
 ## Algoritmos de búsqueda informada y heurística
 
@@ -192,40 +143,33 @@ aparte. La arquitectura general se mantiene estable para la entrega.
 | Avara | `busqueda_avara` | `h(n)` |
 | A* | `busqueda_a_estrella` | `g(n) + h(n)` |
 
-- Ambos usan `HeuristicaAgroBot(world)`, la misma heurística B:
-  `h = 0.5 · L`, donde `L` es una cota inferior de movimientos calculada
-  con distancias Manhattan y un MST sobre la posición, el depósito y los
-  cultivos pendientes.
-- La heurística no depende del combustible y es admisible
-  (`h(n) ≤ costo real`).
-- Se mantienen las convenciones: meta al extraer, nodo meta expandido,
-  ciclos solo por rama con clave relajada, desempate por orden de
-  creación y `limite_nodos`.
-- A* es óptimo con heurística admisible; Avara no garantiza optimalidad.
-- Comparación de los cinco algoritmos sobre `Prueba1.txt`:
-  `python scripts/comparar_algoritmos.py`.
+Ambos usan la heurística B:
 
-## Checklist de entrega
-
-Desde la raíz del proyecto y con el entorno virtual activo:
-
-```bash
-# Pruebas automáticas
-pytest -v
-
-# Comparación de los cinco algoritmos sobre Prueba1
-python scripts/comparar_algoritmos.py
-
-# Aplicación gráfica
-python main.py
+```text
+h = 0.5 · L
 ```
 
-Verificación manual mínima:
+donde `L` es una cota inferior del número de movimientos que faltan,
+calculada con distancias Manhattan y un árbol de expansión mínima (MST)
+sobre la posición, el depósito y los cultivos pendientes. La heurística
+no depende del combustible y es admisible: nunca sobreestima el costo
+real. A* es óptimo con heurística admisible; Avara no garantiza
+optimalidad.
 
-1. Cargar `worlds/Prueba1.txt` y ejecutar los cinco algoritmos.
-2. Confirmar que la animación y el HUD muestran el reporte.
-3. Confirmar que el costo solo aparece en Costo uniforme y A*.
-4. Probar un mundo sin solución y una búsqueda que alcance el límite.
-5. Probar la carga de un archivo inválido.
+## Informe
 
-El informe de heurística está en `docs/informe/heuristica.md`.
+La explicación de la heurística y la justificación de su admisibilidad
+están en:
+
+```text
+docs/informe/heuristica.md
+```
+
+## Verificación rápida
+
+1. Ejecutar `python main.py`.
+2. Cargar `worlds/Prueba1.txt`.
+3. Probar los cinco algoritmos.
+4. Confirmar que la animación y el HUD muestran el reporte.
+5. Confirmar que el costo solo aparece en Costo uniforme y A*.
+6. Probar un mundo sin solución y una búsqueda que alcance el límite.

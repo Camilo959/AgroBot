@@ -1,6 +1,6 @@
 """Mundo del AgroBot: lectura y validación del mapa desde archivo de texto.
 
-Supuestos de diseño (ver README):
+Supuestos de diseño:
     1. El movimiento que llega a la casilla de la avioneta cuesta 1 (el costo
        se determina por el combustible ANTES de moverse).
     5. Las casillas 2, 3, 4 y 5 son transitables. Una vez leído el mundo, la
@@ -24,7 +24,7 @@ class World:
         cultivos: frozenset de (fila, columna) con los cultivos secos (valor 3).
     """
 
-    # Dimensiones esperadas del enunciado. Se definen como constantes para
+    # Dimensiones esperadas de la cuadrícula. Se definen como constantes para
     # no hardcodear el 10 en la lógica de validación.
     FILAS_ESPERADAS: int = 10
     COLUMNAS_ESPERADAS: int = 10
